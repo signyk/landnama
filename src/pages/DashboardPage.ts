@@ -3,6 +3,7 @@ import { authStore } from '../auth/authStore'
 import { territories, svgToTerritories } from '../data/territories'
 import { navbar, initNavHamburger } from '../components/nav'
 import { MapView } from '../components/MapView'
+import { createDropdown } from '../components/Dropdown'
 
 export const DashboardPage = {
     render(_params: Record<string, string>): HTMLElement {
@@ -25,22 +26,11 @@ export const DashboardPage = {
         <aside class="sidebar">
           <div class="sidebar-header">
             <span id="count" class="count-badge">0 / ${territories.length}</span>
-            <input id="search" type="search" placeholder="Leita að löndum/svæðum…" />
-            <select id="region-filter">
-              <option value="">Öll svæði</option>
-              <option>Africa</option>
-              <option>Antarctica</option>
-              <option>Asia</option>
-              <option>Atlantic Ocean</option>
-              <option>Caribbean</option>
-              <option>Central America</option>
-              <option>Europe & Mediterranean</option>
-              <option>Indian Ocean</option>
-              <option>Middle East</option>
-              <option>North America</option>
-              <option>Pacific Ocean</option>
-              <option>South America</option>
-            </select>
+            <div class="search-wrap">
+              <input id="search" type="search" placeholder="Leita að löndum/svæðum…" />
+              <button id="search-clear" class="search-clear hidden" type="button" aria-label="Hreinsa leit">×</button>
+            </div>
+            <div id="region-dropdown-mount"></div>
           </div>
           <div id="territory-list" class="territory-list"></div>
         </aside>
@@ -75,8 +65,28 @@ export const DashboardPage = {
         const tooltip = el.querySelector('#tooltip') as HTMLElement
         const picker = el.querySelector('#picker') as HTMLElement
         const searchInput = el.querySelector('#search') as HTMLInputElement
-        const regionSelect = el.querySelector('#region-filter') as HTMLSelectElement
+        const searchClear = el.querySelector('#search-clear') as HTMLButtonElement
         const listEl = el.querySelector('#territory-list') as HTMLElement
+
+        const regionDropdown = createDropdown({
+            options: [
+                { label: 'Öll svæði', value: '' },
+                { label: 'Africa', value: 'Africa' },
+                { label: 'Antarctica', value: 'Antarctica' },
+                { label: 'Asia', value: 'Asia' },
+                { label: 'Atlantic Ocean', value: 'Atlantic Ocean' },
+                { label: 'Caribbean', value: 'Caribbean' },
+                { label: 'Central America', value: 'Central America' },
+                { label: 'Europe & Mediterranean', value: 'Europe & Mediterranean' },
+                { label: 'Indian Ocean', value: 'Indian Ocean' },
+                { label: 'Middle East', value: 'Middle East' },
+                { label: 'North America', value: 'North America' },
+                { label: 'Pacific Ocean', value: 'Pacific Ocean' },
+                { label: 'South America', value: 'South America' },
+            ],
+            onChange: () => rerender(),
+        })
+        el.querySelector('#region-dropdown-mount')!.replaceWith(regionDropdown.el)
 
         function updateCount() {
             const text = `${visited.size} / ${territories.length}`
@@ -281,9 +291,16 @@ export const DashboardPage = {
         )
 
         // Search + filter
-        const rerender = () => renderList(searchInput.value, regionSelect.value)
+        const rerender = () => {
+            searchClear.classList.toggle('hidden', searchInput.value === '')
+            renderList(searchInput.value, regionDropdown.getValue())
+        }
         searchInput.addEventListener('input', rerender)
-        regionSelect.addEventListener('change', rerender)
+        searchClear.addEventListener('click', () => {
+            searchInput.value = ''
+            searchInput.focus()
+            rerender()
+        })
 
         // Load SVG
         mapView = new MapView({
