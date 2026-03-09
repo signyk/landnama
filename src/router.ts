@@ -98,6 +98,7 @@ async function navigate(path: string) {
   }
 
   if (match.requiresAuth && !authStore.user) {
+    sessionStorage.setItem('redirectAfterAuth', path)
     history.replaceState(null, '', '/')
     navigate('/')
     return

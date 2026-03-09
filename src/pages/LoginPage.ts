@@ -29,7 +29,9 @@ export const LoginPage = {
       if (error) {
         errEl.textContent = error.message
       } else {
-        navigateTo('/home')
+        const redirect = sessionStorage.getItem('redirectAfterAuth')
+        sessionStorage.removeItem('redirectAfterAuth')
+        navigateTo(redirect ?? '/home')
       }
     })
 
