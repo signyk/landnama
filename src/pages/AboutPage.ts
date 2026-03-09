@@ -15,14 +15,27 @@ export const AboutPage = {
             (TCC). TCC eru alþjóðleg félagasamtök fólks sem hefur heimsótt að minnsta kosti 100 lönd eða svæði.
           </p>
           <p>
-            Listinn inniheldur ${new Intl.NumberFormat('is').format(330)} lönd og svæði — mun fleiri en hefðbundnir listar yfir þjóðríki,
+            Listinn inniheldur ${new Intl.NumberFormat('is').format(330)} lönd og svæði, mun fleiri en hefðbundnir listar yfir þjóðríki,
             þar sem margar eyjar eða önnur sérstök landsvæði eru talin sér.
             Til dæmis eru Alaska og Bandaríkin (meginland) talin sem tvö aðskild svæði,
-            og hvert ríki Sameinuðu arabísku furstadæmanna er talið fyrir sig.
+            og hvert furstadæmi Sameinuðu arabísku furstadæmanna er talið fyrir sig.
           </p>
           <p>
             Nánari upplýsingar um listann og skilyrði TCC má finna á
             <a href="https://travelerscenturyclub.org" target="_blank" rel="noopener">travelerscenturyclub.org</a>.
+          </p>
+          <hr />
+          <p>
+            Landnáma skilgreinir ekki hvað telst sem „heimsókn", það er undir hverjum og einum að
+            ákvarða það. Sumir telja land heimsótt ef þeir hafa stigið fæti á land,
+            aðrir krefjast þess að hafa borðað eitthvað eða drukkið, gist þar í eina nótt, farið í gönguferð eða kynnst menningu
+            landsins með einhverjum hætti. Flugsamtengingar og skemmtiferðaskip á höfn teljast hjá
+            sumum, hjá öðrum ekki. Það sem skiptir máli er að þú veljir reglu og haldir þig við hana.
+          </p>
+          <hr />
+          <p>
+            Höfundur Landnámu (þessarar vefsíðu, ekki elstu heimildar um landnám á Íslandi) er Signý Kristín. Frumkóðinn er aðgengilegur á
+            <a href="https://github.com/signyk/landnama" target="_blank" rel="noopener">GitHub</a>.
           </p>
         </div>
       </div>
