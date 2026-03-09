@@ -1,6 +1,11 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
-import { territories, retiredTerritories, svgToTerritories } from '../data/territories'
+import {
+    territories,
+    retiredTerritories,
+    svgToTerritories,
+    territoryMap,
+} from '../data/territories'
 import { navbar, initNavHamburger } from '../components/nav'
 import { MapView } from '../components/MapView'
 import { createDropdown } from '../components/Dropdown'
@@ -141,11 +146,11 @@ export const DashboardPage = {
 
             const byRegion: Record<string, number> = {}
             for (const id of visited) {
-                const t = territories.find((t) => t.id === id)
+                const t = territoryMap.get(id)
                 if (t) byRegion[t.region] = (byRegion[t.region] ?? 0) + 1
             }
 
-            const pct = Math.round((visited.size / territories.length) * 100)
+            const pct = Math.min(100, Math.round((visited.size / territories.length) * 100))
 
             statsEl.innerHTML = `
         <div class="stats-row">
@@ -157,7 +162,7 @@ export const DashboardPage = {
           ${Object.entries(REGION_TOTALS)
               .map(([region, total]) => {
                   const count = byRegion[region] ?? 0
-                  const rpct = Math.round((count / total) * 100)
+                  const rpct = Math.min(100, Math.round((count / total) * 100))
                   return `
               <div class="stats-donut-card">
                 ${donutSvg(rpct, 72, 9)}
@@ -349,7 +354,7 @@ export const DashboardPage = {
             .eq('user_id', user.id)
             .then(({ data, error }) => {
                 if (error) console.error('fetch visits error:', error)
-                const validIds = new Set(territories.map((t) => t.id))
+                const validIds = new Set(territoryMap.keys())
                 if (data)
                     data.forEach((r) => {
                         if (validIds.has(r.country_code)) visited.add(r.country_code)

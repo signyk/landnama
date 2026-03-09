@@ -1,6 +1,6 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
-import { territories } from '../data/territories'
+import { territories, allTerritories } from '../data/territories'
 import { navbar, initNavHamburger } from '../components/nav'
 import { MapView } from '../components/MapView'
 
@@ -56,7 +56,7 @@ export const ProfilePage = {
         }
 
         function renderList() {
-            const visitedTerritories = territories.filter((t) => visited.has(t.id))
+            const visitedTerritories = allTerritories.filter((t) => visited.has(t.id))
             if (visitedTerritories.length === 0) {
                 listEl.innerHTML = '<p class="muted">Engin lönd/svæði heimsótt enn.</p>'
                 return
