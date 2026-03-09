@@ -1,7 +1,6 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
 import { territories } from '../data/territories'
-import { navigateTo } from '../router'
 import { navbar, initNavHamburger } from '../components/nav'
 import { MapView } from '../components/MapView'
 
@@ -90,8 +89,9 @@ export const ProfilePage = {
     // Sign out
     if (isOwnProfile) {
       el.querySelector('#signout-btn')!.addEventListener('click', async () => {
-        await supabase.auth.signOut()
-        navigateTo('/')
+        await supabase.auth.signOut({ scope: 'local' })
+        history.pushState(null, '', '/')
+        window.dispatchEvent(new PopStateEvent('popstate'))
       })
     }
 

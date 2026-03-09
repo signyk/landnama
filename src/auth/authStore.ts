@@ -30,9 +30,12 @@ supabase.auth.getSession().then(({ data }) => {
 supabase.auth.onAuthStateChange((event: string, session: Session | null) => {
   currentUser = session?.user ?? null
   notify()
+  if (event === 'SIGNED_OUT') {
+    history.pushState(null, '', '/')
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  }
   if (event === 'PASSWORD_RECOVERY') {
     history.pushState(null, '', '/reset-password')
-    // Trigger router navigation
     window.dispatchEvent(new PopStateEvent('popstate'))
   }
 })
