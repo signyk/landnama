@@ -322,7 +322,8 @@ export const DashboardPage = {
       .eq('user_id', user.id)
       .then(({ data, error }) => {
         if (error) console.error('fetch visits error:', error)
-        if (data) data.forEach(r => visited.add(r.country_code))
+        const validIds = new Set(territories.map(t => t.id))
+        if (data) data.forEach(r => { if (validIds.has(r.country_code)) visited.add(r.country_code) })
         highlightMap()
         updateCount()
         renderList()
