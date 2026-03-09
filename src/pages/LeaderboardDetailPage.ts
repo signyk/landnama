@@ -3,6 +3,7 @@ import { authStore } from '../auth/authStore'
 import { navigateTo } from '../router'
 import { territories } from '../data/territories'
 import { esc } from '../utils'
+import { navbar, initNavHamburger } from '../nav'
 
 type RankRow = {
   user_id: string
@@ -18,12 +19,7 @@ export const LeaderboardDetailPage = {
     const lbId = params['id']
 
     el.innerHTML = `
-      <nav class="navbar">
-        <span class="nav-brand"><a href="/dashboard">Landnáma</a></span>
-        <div class="nav-links">
-          <a href="/leaderboards">Stigatöflur</a>
-        </div>
-      </nav>
+      ${navbar('leaderboards', user.id)}
       <div class="page-content">
         <div id="lb-header" class="page-header">
           <h1 id="lb-name">Hleður…</h1>
@@ -151,6 +147,7 @@ export const LeaderboardDetailPage = {
       }, () => loadRankings())
       .subscribe()
 
+    initNavHamburger(el)
     return el
   },
 

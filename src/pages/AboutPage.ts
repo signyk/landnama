@@ -1,10 +1,11 @@
+import { navbar, initNavHamburger } from '../nav'
+import { authStore } from '../auth/authStore'
+
 export const AboutPage = {
     render(_params: Record<string, string>): HTMLElement {
         const el = document.createElement("div");
         el.innerHTML = `
-      <nav class="navbar">
-        <span class="nav-brand"><a href="/dashboard">Landnáma</a></span>
-      </nav>
+      ${navbar('about', authStore.user!.id)}
       <div class="page-content">
         <h1>Um Landnámu</h1>
         <div class="about-text">
@@ -26,6 +27,7 @@ export const AboutPage = {
         </div>
       </div>
     `;
+        initNavHamburger(el)
         return el;
     },
 };

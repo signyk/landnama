@@ -1,6 +1,7 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
 import { navigateTo } from '../router'
+import { navbar, initNavHamburger } from '../nav'
 
 export const CreateLeaderboardPage = {
   render(_params: Record<string, string>): HTMLElement {
@@ -8,12 +9,7 @@ export const CreateLeaderboardPage = {
     const user = authStore.user!
 
     el.innerHTML = `
-      <nav class="navbar">
-        <span class="nav-brand"><a href="/dashboard">Landnáma</a></span>
-        <div class="nav-links">
-          <a href="/leaderboards">Stigatöflur</a>
-        </div>
-      </nav>
+      ${navbar('leaderboards', user.id)}
       <div class="page-content">
         <h1>Búa til stigatöflu</h1>
         <form id="create-form">
@@ -53,6 +49,7 @@ export const CreateLeaderboardPage = {
       }
     })
 
+    initNavHamburger(el)
     return el
   },
 }

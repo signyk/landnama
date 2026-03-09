@@ -2,6 +2,7 @@ import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
 import { territories, svgToTerritories } from '../data/territories'
 import { navigateTo } from '../router'
+import { navbar, initNavHamburger } from '../nav'
 
 export const ProfilePage = {
   render(params: Record<string, string>): HTMLElement {
@@ -11,13 +12,7 @@ export const ProfilePage = {
     const isOwnProfile = uid === currentUser.id
 
     el.innerHTML = `
-      <nav class="navbar">
-        <span class="nav-brand"><a href="/dashboard">Landnáma</a></span>
-        <div class="nav-links">
-          <a href="/leaderboards">Stigatöflur</a>
-          ${isOwnProfile ? '<a href="/dashboard">Mitt kort</a>' : ''}
-        </div>
-      </nav>
+      ${navbar(isOwnProfile ? 'profile' : 'home', currentUser.id)}
       <div class="page-content">
         <div id="profile-header" class="page-header">
           <h1 id="profile-name">Loading…</h1>
@@ -117,6 +112,8 @@ export const ProfilePage = {
 
         highlightMap()
       })
+
+    initNavHamburger(el)
 
     // Sign out
     if (isOwnProfile) {

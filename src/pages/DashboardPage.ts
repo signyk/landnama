@@ -1,6 +1,7 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
 import { territories, svgToTerritories } from '../data/territories'
+import { navbar, initNavHamburger } from '../nav'
 
 export const DashboardPage = {
   render(_params: Record<string, string>): HTMLElement {
@@ -12,20 +13,7 @@ export const DashboardPage = {
     let activePickerSvgId: string | null = null
 
     el.innerHTML = `
-      <nav class="navbar">
-        <span class="nav-brand">Landnáma</span>
-        <div class="nav-links">
-          <a href="/leaderboards">Stigatöflur</a>
-          <a href="/profile/${user.id}">Prófíll</a>
-          <a href="/um">Um</a>
-        </div>
-        <button class="nav-hamburger" id="nav-hamburger" aria-label="Valmynd">&#9776;</button>
-        <div class="nav-mobile-menu hidden" id="nav-mobile-menu">
-          <a href="/leaderboards">Stigatöflur</a>
-          <a href="/profile/${user.id}">Prófíll</a>
-          <a href="/um">Um</a>
-        </div>
-      </nav>
+      ${navbar('home', user.id)}
       <div class="mobile-tabs">
         <button class="mobile-tab active" data-tab="map">Kort</button>
         <button class="mobile-tab" data-tab="list">Listi</button>
@@ -68,13 +56,7 @@ export const DashboardPage = {
       </div>
     `
 
-    const hamburger = el.querySelector('#nav-hamburger') as HTMLButtonElement
-    const mobileMenu = el.querySelector('#nav-mobile-menu') as HTMLElement
-    hamburger.addEventListener('click', (e) => {
-      e.stopPropagation()
-      mobileMenu.classList.toggle('hidden')
-    })
-    document.addEventListener('click', () => mobileMenu.classList.add('hidden'))
+    initNavHamburger(el)
 
     // Mobile tab switching
     const dashBody = el.querySelector('.dashboard-body') as HTMLElement
@@ -320,6 +302,68 @@ export const DashboardPage = {
         })
 
         highlightMap()
+
+        // Zoom + pan via viewBox manipulation
+        const ob = svgEl.viewBox.baseVal
+        const orig = { x: ob.x, y: ob.y, w: ob.width, h: ob.height }
+        let vx = orig.x, vy = orig.y, vw = orig.w, vh = orig.h
+
+        function applyVB() {
+          svgEl!.setAttribute('viewBox', `${vx} ${vy} ${vw} ${vh}`)
+        }
+
+        svgEl.addEventListener('wheel', (e) => {
+          e.preventDefault()
+          const rect = svgEl!.getBoundingClientRect()
+          const mx = (e.clientX - rect.left) / rect.width
+          const my = (e.clientY - rect.top) / rect.height
+          const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15
+          const newVw = Math.min(orig.w, vw / factor)
+          const newVh = Math.min(orig.h, vh / factor)
+          if (newVw >= orig.w) {
+            vx = orig.x; vy = orig.y; vw = orig.w; vh = orig.h
+            applyVB(); return
+          }
+          vx += mx * (vw - newVw)
+          vy += my * (vh - newVh)
+          vw = newVw; vh = newVh
+          applyVB()
+        }, { passive: false })
+
+        // Drag to pan
+        let panX = 0, panY = 0, isPanning = false, hasPanned = false
+        svgEl.addEventListener('pointerdown', (e) => {
+          if (e.button !== 0) return
+          isPanning = true; hasPanned = false
+          panX = e.clientX; panY = e.clientY
+        })
+        window.addEventListener('pointermove', (e) => {
+          if (!isPanning) return
+          const dx = e.clientX - panX
+          const dy = e.clientY - panY
+          if (!hasPanned && Math.hypot(dx, dy) < 4) return
+          hasPanned = true
+          svgEl!.style.cursor = 'grabbing'
+          const rect = svgEl!.getBoundingClientRect()
+          vx -= dx / rect.width * vw
+          vy -= dy / rect.height * vh
+          panX = e.clientX; panY = e.clientY
+          applyVB()
+        })
+        window.addEventListener('pointerup', () => {
+          if (hasPanned) {
+            window.addEventListener('click', e => e.stopPropagation(), { capture: true, once: true })
+          }
+          isPanning = false
+          svgEl!.style.cursor = ''
+        })
+
+        // Double-click to reset
+        svgEl.addEventListener('dblclick', (e) => {
+          e.stopPropagation()
+          vx = orig.x; vy = orig.y; vw = orig.w; vh = orig.h
+          applyVB()
+        })
       })
 
     // Fetch visits

@@ -1,7 +1,7 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
-import { navigateTo } from '../router'
 import { esc } from '../utils'
+import { navbar, initNavHamburger } from '../nav'
 
 export const LeaderboardListPage = {
   render(_params: Record<string, string>): HTMLElement {
@@ -9,13 +9,7 @@ export const LeaderboardListPage = {
     const user = authStore.user!
 
     el.innerHTML = `
-      <nav class="navbar">
-        <span class="nav-brand"><a href="/dashboard">Landnáma</a></span>
-        <div class="nav-links">
-          <a href="/dashboard">Kort</a>
-          <button id="signout">Skrá út</button>
-        </div>
-      </nav>
+      ${navbar('leaderboards', user.id)}
       <div class="page-content">
         <div class="page-header">
           <h1>Stigatöflur</h1>
@@ -24,11 +18,6 @@ export const LeaderboardListPage = {
         <div id="list">Hleður…</div>
       </div>
     `
-
-    el.querySelector('#signout')!.addEventListener('click', async () => {
-      await supabase.auth.signOut()
-      navigateTo('/')
-    })
 
     const listEl = el.querySelector('#list') as HTMLElement
 
@@ -62,6 +51,7 @@ export const LeaderboardListPage = {
         })
       })
 
+    initNavHamburger(el)
     return el
   },
 }
