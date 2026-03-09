@@ -81,14 +81,12 @@ export class MapView {
     const orig = { x: ob.x, y: ob.y, w: ob.width, h: ob.height }
     let vx = orig.x, vy = orig.y, vw = orig.w, vh = orig.h
 
+    // Prevent browser page zoom on the map
+    svgEl.style.touchAction = 'none'
+
     const applyVB = () => svgEl.setAttribute('viewBox', `${vx} ${vy} ${vw} ${vh}`)
 
-    svgEl.addEventListener('wheel', (e) => {
-      e.preventDefault()
-      const rect = svgEl.getBoundingClientRect()
-      const mx = (e.clientX - rect.left) / rect.width
-      const my = (e.clientY - rect.top) / rect.height
-      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15
+    const zoomAround = (mx: number, my: number, factor: number) => {
       const newVw = Math.min(orig.w, vw / factor)
       const newVh = Math.min(orig.h, vh / factor)
       if (newVw >= orig.w) {
@@ -99,8 +97,20 @@ export class MapView {
       vy += my * (vh - newVh)
       vw = newVw; vh = newVh
       applyVB()
+    }
+
+    // Desktop: wheel to zoom
+    svgEl.addEventListener('wheel', (e) => {
+      e.preventDefault()
+      const rect = svgEl.getBoundingClientRect()
+      zoomAround(
+        (e.clientX - rect.left) / rect.width,
+        (e.clientY - rect.top) / rect.height,
+        e.deltaY < 0 ? 1.15 : 1 / 1.15
+      )
     }, { passive: false })
 
+    // Desktop: drag to pan
     let panX = 0, panY = 0, isPanning = false, hasPanned = false
     svgEl.addEventListener('pointerdown', (e) => {
       if (e.button !== 0) return
@@ -127,6 +137,45 @@ export class MapView {
       isPanning = false
       svgEl.style.cursor = ''
     })
+
+    // Mobile: pinch to zoom + single-finger pan
+    let lastTouchDist = 0, lastTouchX = 0, lastTouchY = 0
+    svgEl.addEventListener('touchstart', (e) => {
+      e.preventDefault()
+      if (e.touches.length === 2) {
+        lastTouchDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        )
+      } else if (e.touches.length === 1) {
+        lastTouchX = e.touches[0].clientX
+        lastTouchY = e.touches[0].clientY
+      }
+    }, { passive: false })
+
+    svgEl.addEventListener('touchmove', (e) => {
+      e.preventDefault()
+      const rect = svgEl.getBoundingClientRect()
+      if (e.touches.length === 2) {
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        )
+        const factor = dist / lastTouchDist
+        lastTouchDist = dist
+        const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2
+        const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2
+        zoomAround((cx - rect.left) / rect.width, (cy - rect.top) / rect.height, factor)
+      } else if (e.touches.length === 1) {
+        const dx = e.touches[0].clientX - lastTouchX
+        const dy = e.touches[0].clientY - lastTouchY
+        vx -= dx / rect.width * vw
+        vy -= dy / rect.height * vh
+        lastTouchX = e.touches[0].clientX
+        lastTouchY = e.touches[0].clientY
+        applyVB()
+      }
+    }, { passive: false })
 
     svgEl.addEventListener('dblclick', (e) => {
       e.stopPropagation()
