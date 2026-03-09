@@ -9,7 +9,7 @@ export function navbar(active: NavPage, userId?: string): string {
   const profileLink = userId ? link('profile', `/profile/${userId}`, 'Prófíll') : ''
 
   const links = `
-    ${link('home', '/dashboard', 'Heim')}
+    ${link('home', '/home', 'Heim')}
     ${link('leaderboards', '/leaderboards', 'Stigatöflur')}
     ${profileLink}
     ${link('about', '/um', 'Um')}
@@ -17,7 +17,7 @@ export function navbar(active: NavPage, userId?: string): string {
 
   return `
     <nav class="navbar">
-      <span class="nav-brand"><a href="/dashboard">Landnáma</a></span>
+      <span class="nav-brand"><a href="/home">Landnáma</a></span>
       <div class="nav-links">${links}</div>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Valmynd">&#9776;</button>
       <div class="nav-mobile-menu hidden" id="nav-mobile-menu">${links}</div>

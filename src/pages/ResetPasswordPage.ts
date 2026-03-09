@@ -31,7 +31,7 @@ export const ResetPasswordPage = {
       if (error) {
         errEl.textContent = error.message
       } else {
-        navigateTo('/dashboard')
+        navigateTo('/home')
       }
     })
 

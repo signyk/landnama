@@ -27,7 +27,7 @@ const routes: Route[] = [
     requiresAuth: false,
   },
   {
-    pattern: /^\/dashboard$/,
+    pattern: /^\/home$/,
     keys: [],
     loader: () => import('./pages/DashboardPage').then(m => m.DashboardPage),
     requiresAuth: true,
@@ -105,8 +105,8 @@ async function navigate(path: string) {
 
   // Redirect logged-in users away from auth pages
   if (!match.requiresAuth && authStore.user && pathname === '/') {
-    history.replaceState(null, '', '/dashboard')
-    navigate('/dashboard')
+    history.replaceState(null, '', '/home')
+    navigate('/home')
     return
   }
 
