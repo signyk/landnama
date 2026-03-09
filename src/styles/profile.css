@@ -1,41 +1,49 @@
 .profile-map {
-  height: 400px;
-  border: 1px solid #2e3347;
-  border-radius: 8px;
-  overflow: hidden;
+    height: 400px;
+    border: 1px solid #2e3347;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .profile-territory-list {
-  column-count: 3;
-  column-gap: 1.5rem;
+    column-count: 3;
+    column-gap: 1.5rem;
 }
 
 .edit-name-form {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
-.edit-name-form.hidden { display: none; }
+.edit-name-form.hidden {
+    display: none;
+}
 
 .edit-name-form input {
-  padding: 0.5rem 0.75rem;
-  background: #1e2130;
-  border: 1px solid #2e3347;
-  border-radius: 6px;
-  color: #e8e8e8;
-  font-size: 1rem;
-  outline: none;
-  width: 240px;
+    padding: 0.5rem 0.75rem;
+    background: #1e2130;
+    border: 1px solid #2e3347;
+    border-radius: 6px;
+    color: #e8e8e8;
+    font-size: 1rem;
+    outline: none;
+    width: 240px;
 }
 
-.edit-name-form input:focus { border-color: #7cb9e8; }
+.edit-name-form input:focus {
+    border-color: #7cb9e8;
+}
 
 @media (max-width: 700px) {
-  .profile-territory-list { column-count: 2; }
+    .profile-territory-list {
+        column-count: 2;
+    }
 }
 
 @media (max-width: 540px) {
-  .profile-territory-list { column-count: 1; }
+    .profile-territory-list {
+        column-count: 1;
+    }
 }

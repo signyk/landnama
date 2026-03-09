@@ -3,7 +3,7 @@ import { authStore } from '../auth/authStore'
 
 export const AboutPage = {
     render(_params: Record<string, string>): HTMLElement {
-        const el = document.createElement("div");
+        const el = document.createElement('div')
         el.innerHTML = `
       ${navbar('about', authStore.user!.id)}
       <div class="page-content">
@@ -15,7 +15,7 @@ export const AboutPage = {
             (TCC). TCC eru alþjóðleg félagasamtök fólks sem hefur heimsótt að minnsta kosti 100 lönd eða svæði.
           </p>
           <p>
-            Listinn inniheldur ${new Intl.NumberFormat("is").format(330)} lönd og svæði — mun fleiri en hefðbundnir listar yfir þjóðríki,
+            Listinn inniheldur ${new Intl.NumberFormat('is').format(330)} lönd og svæði — mun fleiri en hefðbundnir listar yfir þjóðríki,
             þar sem margar eyjar eða önnur sérstök landsvæði eru talin sér.
             Til dæmis eru Alaska og Bandaríkin (meginland) talin sem tvö aðskild svæði,
             og hvert ríki Sameinuðu arabísku furstadæmanna er talið fyrir sig.
@@ -26,8 +26,8 @@ export const AboutPage = {
           </p>
         </div>
       </div>
-    `;
+    `
         initNavHamburger(el)
-        return el;
+        return el
     },
-};
+}

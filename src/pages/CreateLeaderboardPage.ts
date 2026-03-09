@@ -4,11 +4,11 @@ import { navigateTo } from '../router'
 import { navbar, initNavHamburger } from '../components/nav'
 
 export const CreateLeaderboardPage = {
-  render(_params: Record<string, string>): HTMLElement {
-    const el = document.createElement('div')
-    const user = authStore.user!
+    render(_params: Record<string, string>): HTMLElement {
+        const el = document.createElement('div')
+        const user = authStore.user!
 
-    el.innerHTML = `
+        el.innerHTML = `
       ${navbar('leaderboards', user.id)}
       <div class="page-content">
         <h1>Búa til stigatöflu</h1>
@@ -25,31 +25,31 @@ export const CreateLeaderboardPage = {
       </div>
     `
 
-    el.querySelector('#create-form')!.addEventListener('submit', async (e) => {
-      e.preventDefault()
-      const name = (el.querySelector('#name') as HTMLInputElement).value.trim()
-      const description = (el.querySelector('#description') as HTMLInputElement).value.trim()
-      const errEl = el.querySelector('#error') as HTMLElement
+        el.querySelector('#create-form')!.addEventListener('submit', async (e) => {
+            e.preventDefault()
+            const name = (el.querySelector('#name') as HTMLInputElement).value.trim()
+            const description = (el.querySelector('#description') as HTMLInputElement).value.trim()
+            const errEl = el.querySelector('#error') as HTMLElement
 
-      const { data, error } = await supabase
-        .from('leaderboards')
-        .insert({ name, description: description || null, owner_id: user.id })
-        .select('id')
-        .single()
+            const { data, error } = await supabase
+                .from('leaderboards')
+                .insert({ name, description: description || null, owner_id: user.id })
+                .select('id')
+                .single()
 
-      if (error) {
-        errEl.textContent = error.message
-      } else {
-        // Also add creator as a member
-        await supabase.from('leaderboard_members').insert({
-          leaderboard_id: data.id,
-          user_id: user.id,
+            if (error) {
+                errEl.textContent = error.message
+            } else {
+                // Also add creator as a member
+                await supabase.from('leaderboard_members').insert({
+                    leaderboard_id: data.id,
+                    user_id: user.id,
+                })
+                navigateTo(`/leaderboards/${data.id}`)
+            }
         })
-        navigateTo(`/leaderboards/${data.id}`)
-      }
-    })
 
-    initNavHamburger(el)
-    return el
-  },
+        initNavHamburger(el)
+        return el
+    },
 }

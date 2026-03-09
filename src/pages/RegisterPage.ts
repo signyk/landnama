@@ -2,9 +2,9 @@ import { navigateTo } from '../router'
 import { supabase } from '../supabase'
 
 export const RegisterPage = {
-  render(_params: Record<string, string>): HTMLElement {
-    const el = document.createElement('div')
-    el.innerHTML = `
+    render(_params: Record<string, string>): HTMLElement {
+        const el = document.createElement('div')
+        el.innerHTML = `
       <div class="auth-page">
         <h1>Búa til aðgang</h1>
         <form id="register-form">
@@ -18,29 +18,29 @@ export const RegisterPage = {
       </div>
     `
 
-    el.querySelector('#register-form')!.addEventListener('submit', async (e) => {
-      e.preventDefault()
-      const displayName = (el.querySelector('#display-name') as HTMLInputElement).value.trim()
-      const email = (el.querySelector('#email') as HTMLInputElement).value
-      const password = (el.querySelector('#password') as HTMLInputElement).value
-      const errEl = el.querySelector('#error') as HTMLElement
+        el.querySelector('#register-form')!.addEventListener('submit', async (e) => {
+            e.preventDefault()
+            const displayName = (el.querySelector('#display-name') as HTMLInputElement).value.trim()
+            const email = (el.querySelector('#email') as HTMLInputElement).value
+            const password = (el.querySelector('#password') as HTMLInputElement).value
+            const errEl = el.querySelector('#error') as HTMLElement
 
-      errEl.textContent = ''
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { display_name: displayName } },
-      })
+            errEl.textContent = ''
+            const { error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: { data: { display_name: displayName } },
+            })
 
-      if (error) {
-        errEl.textContent = error.message
-      } else {
-        const redirect = sessionStorage.getItem('redirectAfterAuth')
-        sessionStorage.removeItem('redirectAfterAuth')
-        navigateTo(redirect ?? '/home')
-      }
-    })
+            if (error) {
+                errEl.textContent = error.message
+            } else {
+                const redirect = sessionStorage.getItem('redirectAfterAuth')
+                sessionStorage.removeItem('redirectAfterAuth')
+                navigateTo(redirect ?? '/home')
+            }
+        })
 
-    return el
-  },
+        return el
+    },
 }

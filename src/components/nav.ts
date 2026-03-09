@@ -1,21 +1,21 @@
 type NavPage = 'home' | 'leaderboards' | 'about' | 'profile'
 
 export function navbar(active: NavPage, userId?: string): string {
-  const link = (page: NavPage, href: string, label: string) =>
-    page === active
-      ? `<span class="nav-link-active">${label}</span>`
-      : `<a href="${href}">${label}</a>`
+    const link = (page: NavPage, href: string, label: string) =>
+        page === active
+            ? `<span class="nav-link-active">${label}</span>`
+            : `<a href="${href}">${label}</a>`
 
-  const profileLink = userId ? link('profile', `/profile/${userId}`, 'Prófíll') : ''
+    const profileLink = userId ? link('profile', `/profile/${userId}`, 'Prófíll') : ''
 
-  const links = `
+    const links = `
     ${link('home', '/home', 'Heim')}
     ${link('leaderboards', '/leaderboards', 'Stigatöflur')}
     ${profileLink}
     ${link('about', '/um', 'Um')}
   `
 
-  return `
+    return `
     <nav class="navbar">
       <span class="nav-brand"><a href="/home">Landnáma</a></span>
       <div class="nav-links">${links}</div>
@@ -26,12 +26,12 @@ export function navbar(active: NavPage, userId?: string): string {
 }
 
 export function initNavHamburger(el: HTMLElement): void {
-  const hamburger = el.querySelector('#nav-hamburger') as HTMLButtonElement
-  const mobileMenu = el.querySelector('#nav-mobile-menu') as HTMLElement
-  if (!hamburger || !mobileMenu) return
-  hamburger.addEventListener('click', (e) => {
-    e.stopPropagation()
-    mobileMenu.classList.toggle('hidden')
-  })
-  document.addEventListener('click', () => mobileMenu.classList.add('hidden'))
+    const hamburger = el.querySelector('#nav-hamburger') as HTMLButtonElement
+    const mobileMenu = el.querySelector('#nav-mobile-menu') as HTMLElement
+    if (!hamburger || !mobileMenu) return
+    hamburger.addEventListener('click', (e) => {
+        e.stopPropagation()
+        mobileMenu.classList.toggle('hidden')
+    })
+    document.addEventListener('click', () => mobileMenu.classList.add('hidden'))
 }
