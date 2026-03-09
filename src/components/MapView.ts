@@ -81,7 +81,7 @@ export class MapView {
     const orig = { x: ob.x, y: ob.y, w: ob.width, h: ob.height }
     let vx = orig.x, vy = orig.y, vw = orig.w, vh = orig.h
 
-    // Prevent browser page zoom on the map
+    // Prevent browser from handling pan/pinch on this element
     svgEl.style.touchAction = 'none'
 
     const applyVB = () => svgEl.setAttribute('viewBox', `${vx} ${vy} ${vw} ${vh}`)
@@ -99,7 +99,7 @@ export class MapView {
       applyVB()
     }
 
-    // Desktop: wheel to zoom
+    // Mouse wheel zoom
     svgEl.addEventListener('wheel', (e) => {
       e.preventDefault()
       const rect = svgEl.getBoundingClientRect()
@@ -110,72 +110,55 @@ export class MapView {
       )
     }, { passive: false })
 
-    // Desktop: drag to pan
-    let panX = 0, panY = 0, isPanning = false, hasPanned = false
+    // Unified pointer handling for pan (1 pointer) and pinch zoom (2 pointers)
+    const pointers = new Map<number, PointerEvent>()
+    let lastPinchDist = 0
+    let hasPanned = false
+
     svgEl.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return
-      isPanning = true; hasPanned = false
-      panX = e.clientX; panY = e.clientY
+      pointers.set(e.pointerId, e)
+      hasPanned = false
+      if (pointers.size === 2) {
+        const [p1, p2] = [...pointers.values()]
+        lastPinchDist = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY)
+      }
     })
+
     window.addEventListener('pointermove', (e) => {
-      if (!isPanning) return
-      const dx = e.clientX - panX
-      const dy = e.clientY - panY
-      if (!hasPanned && Math.hypot(dx, dy) < 4) return
-      hasPanned = true
-      svgEl.style.cursor = 'grabbing'
+      if (!pointers.has(e.pointerId)) return
+      const prev = pointers.get(e.pointerId)!
+      pointers.set(e.pointerId, e)
       const rect = svgEl.getBoundingClientRect()
-      vx -= dx / rect.width * vw
-      vy -= dy / rect.height * vh
-      panX = e.clientX; panY = e.clientY
-      applyVB()
-    })
-    window.addEventListener('pointerup', () => {
-      if (hasPanned) {
-        window.addEventListener('click', e => e.stopPropagation(), { capture: true, once: true })
-      }
-      isPanning = false
-      svgEl.style.cursor = ''
-    })
 
-    // Mobile: pinch to zoom + single-finger pan
-    let lastTouchDist = 0, lastTouchX = 0, lastTouchY = 0
-    svgEl.addEventListener('touchstart', (e) => {
-      e.preventDefault()
-      if (e.touches.length === 2) {
-        lastTouchDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        )
-      } else if (e.touches.length === 1) {
-        lastTouchX = e.touches[0].clientX
-        lastTouchY = e.touches[0].clientY
-      }
-    }, { passive: false })
-
-    svgEl.addEventListener('touchmove', (e) => {
-      e.preventDefault()
-      const rect = svgEl.getBoundingClientRect()
-      if (e.touches.length === 2) {
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        )
-        const factor = dist / lastTouchDist
-        lastTouchDist = dist
-        const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2
-        const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2
-        zoomAround((cx - rect.left) / rect.width, (cy - rect.top) / rect.height, factor)
-      } else if (e.touches.length === 1) {
-        const dx = e.touches[0].clientX - lastTouchX
-        const dy = e.touches[0].clientY - lastTouchY
+      if (pointers.size === 2) {
+        const [p1, p2] = [...pointers.values()]
+        const dist = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY)
+        if (lastPinchDist > 0) {
+          const cx = (p1.clientX + p2.clientX) / 2
+          const cy = (p1.clientY + p2.clientY) / 2
+          zoomAround((cx - rect.left) / rect.width, (cy - rect.top) / rect.height, dist / lastPinchDist)
+        }
+        lastPinchDist = dist
+      } else if (pointers.size === 1) {
+        const dx = e.clientX - prev.clientX
+        const dy = e.clientY - prev.clientY
+        if (!hasPanned && Math.hypot(dx, dy) < 4) return
+        hasPanned = true
+        svgEl.style.cursor = 'grabbing'
         vx -= dx / rect.width * vw
         vy -= dy / rect.height * vh
-        lastTouchX = e.touches[0].clientX
-        lastTouchY = e.touches[0].clientY
         applyVB()
       }
-    }, { passive: false })
+    })
+
+    window.addEventListener('pointerup', (e) => {
+      if (hasPanned && pointers.size <= 1) {
+        window.addEventListener('click', e => e.stopPropagation(), { capture: true, once: true })
+      }
+      pointers.delete(e.pointerId)
+      if (pointers.size < 2) lastPinchDist = 0
+      if (pointers.size === 0) { hasPanned = false; svgEl.style.cursor = '' }
+    })
 
     svgEl.addEventListener('dblclick', (e) => {
       e.stopPropagation()
