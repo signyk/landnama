@@ -1,6 +1,7 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
 import { territories, svgToTerritories } from '../data/territories'
+import { navigateTo } from '../router'
 
 export const ProfilePage = {
   render(params: Record<string, string>): HTMLElement {
@@ -22,6 +23,7 @@ export const ProfilePage = {
           <h1 id="profile-name">Loading…</h1>
           <span id="profile-count" class="count-badge"></span>
           ${isOwnProfile ? '<button id="edit-name-btn" class="btn-ghost">Breyta nafni</button>' : ''}
+          ${isOwnProfile ? '<button id="signout-btn" class="btn-ghost btn-signout">Skrá út</button>' : ''}
         </div>
         ${isOwnProfile ? `
           <div id="edit-name-form" class="edit-name-form hidden">
@@ -115,6 +117,14 @@ export const ProfilePage = {
 
         highlightMap()
       })
+
+    // Sign out
+    if (isOwnProfile) {
+      el.querySelector('#signout-btn')!.addEventListener('click', async () => {
+        await supabase.auth.signOut()
+        navigateTo('/')
+      })
+    }
 
     // Edit display name (own profile only)
     if (isOwnProfile) {

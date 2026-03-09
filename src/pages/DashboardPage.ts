@@ -1,7 +1,6 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
 import { territories, svgToTerritories } from '../data/territories'
-import { navigateTo } from '../router'
 
 export const DashboardPage = {
   render(_params: Record<string, string>): HTMLElement {
@@ -19,7 +18,12 @@ export const DashboardPage = {
           <a href="/leaderboards">Stigatöflur</a>
           <a href="/profile/${user.id}">Prófíll</a>
           <a href="/um">Um</a>
-          <button id="signout">Skrá út</button>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Valmynd">&#9776;</button>
+        <div class="nav-mobile-menu hidden" id="nav-mobile-menu">
+          <a href="/leaderboards">Stigatöflur</a>
+          <a href="/profile/${user.id}">Prófíll</a>
+          <a href="/um">Um</a>
         </div>
       </nav>
       <div class="mobile-tabs">
@@ -64,10 +68,13 @@ export const DashboardPage = {
       </div>
     `
 
-    el.querySelector('#signout')!.addEventListener('click', async () => {
-      await supabase.auth.signOut()
-      navigateTo('/')
+    const hamburger = el.querySelector('#nav-hamburger') as HTMLButtonElement
+    const mobileMenu = el.querySelector('#nav-mobile-menu') as HTMLElement
+    hamburger.addEventListener('click', (e) => {
+      e.stopPropagation()
+      mobileMenu.classList.toggle('hidden')
     })
+    document.addEventListener('click', () => mobileMenu.classList.add('hidden'))
 
     // Mobile tab switching
     const dashBody = el.querySelector('.dashboard-body') as HTMLElement
