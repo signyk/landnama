@@ -178,6 +178,17 @@
     margin-bottom: 0.25rem;
 }
 
+.list-retired-header {
+    padding: 0.6rem 0.75rem 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #4b5563;
+    border-top: 1px solid #2e3347;
+    margin-top: 0.5rem;
+}
+
 .list-region {
     padding: 0.4rem 0.75rem 0.25rem;
     font-size: 0.75rem;

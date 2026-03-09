@@ -1,6 +1,6 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
-import { territories, svgToTerritories } from '../data/territories'
+import { territories, retiredTerritories, svgToTerritories } from '../data/territories'
 import { navbar, initNavHamburger } from '../components/nav'
 import { MapView } from '../components/MapView'
 import { createDropdown } from '../components/Dropdown'
@@ -193,21 +193,51 @@ export const DashboardPage = {
                 byRegion.set(t.region, list)
             }
 
+            const makeRow = (t: (typeof territories)[0]) => {
+                const row = document.createElement('div')
+                row.className = `list-row${visited.has(t.id) ? ' visited' : ''}`
+                row.dataset.id = t.id
+                row.textContent = t.name
+                row.addEventListener('click', () => toggleVisit(t.id, row))
+                return row
+            }
+
             listEl.innerHTML = ''
             byRegion.forEach((items, region) => {
                 const group = document.createElement('div')
                 group.className = 'list-group'
                 group.innerHTML = `<div class="list-region">${region}</div>`
-                items.forEach((t) => {
-                    const row = document.createElement('div')
-                    row.className = `list-row${visited.has(t.id) ? ' visited' : ''}`
-                    row.dataset.id = t.id
-                    row.textContent = t.name
-                    row.addEventListener('click', () => toggleVisit(t.id, row))
-                    group.appendChild(row)
-                })
+                items.forEach((t) => group.appendChild(makeRow(t)))
                 listEl.appendChild(group)
             })
+
+            {
+                const filteredRetired = retiredTerritories.filter(
+                    (t) =>
+                        (!region || t.region === region) &&
+                        (!lower || t.name.toLowerCase().includes(lower)),
+                )
+                if (filteredRetired.length > 0) {
+                    const separator = document.createElement('div')
+                    separator.className = 'list-retired-header'
+                    separator.textContent = 'Fyrrum svæði'
+                    listEl.appendChild(separator)
+
+                    const byRegionRetired = new Map<string, typeof retiredTerritories>()
+                    for (const t of filteredRetired) {
+                        const list = byRegionRetired.get(t.region) ?? []
+                        list.push(t)
+                        byRegionRetired.set(t.region, list)
+                    }
+                    byRegionRetired.forEach((items, region) => {
+                        const group = document.createElement('div')
+                        group.className = 'list-group'
+                        group.innerHTML = `<div class="list-region">${region}</div>`
+                        items.forEach((t) => group.appendChild(makeRow(t)))
+                        listEl.appendChild(group)
+                    })
+                }
+            }
         }
 
         async function toggleVisit(id: string, rowEl?: Element) {

@@ -431,11 +431,219 @@ export const territories: Territory[] = [
     { id: 'vn', name: 'Vietnam', region: 'Asia', svgId: 'vn' },
 ]
 
-export const territoryMap = new Map(territories.map((t) => [t.id, t]))
+export const retiredTerritories: Territory[] = [
+    // PACIFIC OCEAN
+    { id: 'clipperton', name: 'Clipperton Island (fyrir 1980)', region: 'Pacific Ocean' },
+    { id: 'gambier', name: 'Gambier Island (fyrir 1980)', region: 'Pacific Ocean', svgId: 'pf' },
+    { id: 'johnston', name: 'Johnston Island (fyrir 2007)', region: 'Pacific Ocean' },
+    {
+        id: 'ki-american-line',
+        name: 'Line Islands, American (fyrir 1979)',
+        region: 'Pacific Ocean',
+        svgId: 'ki',
+    },
+    {
+        id: 'loyalty-islands',
+        name: 'Loyalty Islands (fyrir 1980)',
+        region: 'Pacific Ocean',
+        svgId: 'nc',
+    },
+    {
+        id: 'pg-new-guinea-territory',
+        name: 'New Guinea Territory (fyrir 1975)',
+        region: 'Pacific Ocean',
+        svgId: 'pg',
+    },
+    {
+        id: 'pg-papua-territory',
+        name: 'Papua Territory (fyrir 1975)',
+        region: 'Pacific Ocean',
+        svgId: 'pg',
+    },
+    {
+        id: 'ki-phoenix',
+        name: 'Phoenix Islands (fyrir 1979)',
+        region: 'Pacific Ocean',
+        svgId: 'ki',
+    },
+    { id: 'tuamotu', name: 'Tuamotu Islands (fyrir 1980)', region: 'Pacific Ocean', svgId: 'pf' },
+    {
+        id: 'volcano-islands',
+        name: 'Volcano Islands (fyrir 1980)',
+        region: 'Pacific Ocean',
+        svgId: 'jp',
+    },
+
+    // CENTRAL AMERICA
+    {
+        id: 'panama-canal-zone',
+        name: 'Panama Canal Zone (fyrir 1979)',
+        region: 'Central America',
+        svgId: 'pa',
+    },
+    {
+        id: 'pa-san-blas',
+        name: 'San Blas Islands (fyrir 2004)',
+        region: 'Central America',
+        svgId: 'pa',
+    },
+
+    // CARIBBEAN
+    { id: 'netherlands-antilles', name: 'Netherlands Antilles (fyrir 2007)', region: 'Caribbean' },
+    { id: 'kn', name: 'St. Kitts & Nevis (fyrir 2022)', region: 'Caribbean', svgId: 'kn' },
+
+    // ATLANTIC OCEAN
+    {
+        id: 'fk-dependencies',
+        name: 'Falkland Islands Dependencies (fyrir 2018)',
+        region: 'Atlantic Ocean',
+        svgId: 'fk',
+    },
+    {
+        id: 'south-georgia-island',
+        name: 'South Georgia Island (fyrir 1980)',
+        region: 'Atlantic Ocean',
+        svgId: 'gs',
+    },
+    {
+        id: 'south-sandwich-island',
+        name: 'South Sandwich Island (fyrir 1980)',
+        region: 'Atlantic Ocean',
+        svgId: 'gs',
+    },
+
+    // EUROPE & MEDITERRANEAN
+    { id: 'berlin', name: 'Berlin (fyrir 1990)', region: 'Europe & Mediterranean', svgId: 'de' },
+    { id: 'czechoslovakia', name: 'Czechoslovakia (fyrir 1992)', region: 'Europe & Mediterranean' },
+    {
+        id: 'dodecanese',
+        name: 'Dodecanese Islands (fyrir 2018)',
+        region: 'Europe & Mediterranean',
+        svgId: 'gr',
+    },
+    {
+        id: 'east-germany',
+        name: 'German Democratic Republic (fyrir 1990)',
+        region: 'Europe & Mediterranean',
+        svgId: 'de',
+    },
+    { id: 'karelia', name: 'Karelia (fyrir 1960)', region: 'Europe & Mediterranean' },
+    {
+        id: 'malta-smom',
+        name: 'Malta, Sovereign Military Order of (fyrir 1980)',
+        region: 'Europe & Mediterranean',
+        svgId: 'it',
+    },
+    {
+        id: 'porkkala',
+        name: 'Porkkala (fyrir 1955)',
+        region: 'Europe & Mediterranean',
+        svgId: 'fi',
+    },
+    { id: 'saar', name: 'Saar (fyrir 1957)', region: 'Europe & Mediterranean', svgId: 'de' },
+    { id: 'trieste', name: 'Trieste (fyrir 1957)', region: 'Europe & Mediterranean', svgId: 'it' },
+
+    // ANTARCTICA
+    {
+        id: 'aq-american',
+        name: 'Antarctica: American (fyrir 2004)',
+        region: 'Antarctica',
+        svgId: 'aq',
+    },
+    {
+        id: 'aq-japanese',
+        name: 'Antarctica: Japanese (fyrir 1984)',
+        region: 'Antarctica',
+        svgId: 'aq',
+    },
+    { id: 'aq-polish', name: 'Antarctica: Polish (fyrir 1984)', region: 'Antarctica', svgId: 'aq' },
+    {
+        id: 'aq-russian',
+        name: 'Antarctica: Russian (fyrir 2004)',
+        region: 'Antarctica',
+        svgId: 'aq',
+    },
+    {
+        id: 'aq-south-african',
+        name: 'Antarctica: South African (fyrir 1984)',
+        region: 'Antarctica',
+        svgId: 'aq',
+    },
+    {
+        id: 'aq-south-orkney',
+        name: 'South Orkney Islands (fyrir 1980)',
+        region: 'Antarctica',
+        svgId: 'aq',
+    },
+    {
+        id: 'aq-south-shetland',
+        name: 'South Shetland Islands (fyrir 1980)',
+        region: 'Antarctica',
+        svgId: 'aq',
+    },
+
+    // AFRICA
+    { id: 'bophuthatswana', name: 'Bophuthatswana (fyrir 1994)', region: 'Africa', svgId: 'za' },
+    { id: 'ciskei', name: 'Ciskei (fyrir 1994)', region: 'Africa', svgId: 'za' },
+    { id: 'gq-fernando-poo', name: 'Fernando Poo (fyrir 1968)', region: 'Africa', svgId: 'gq' },
+    { id: 'ifni', name: 'Ifni (fyrir 1969)', region: 'Africa', svgId: 'ma' },
+    { id: 'rio-muni', name: 'Rio Muni (fyrir 1968)', region: 'Africa', svgId: 'gq' },
+    { id: 'ruanda-urundi', name: 'Ruanda-Urundi (fyrir 1962)', region: 'Africa' },
+    {
+        id: 'somaliland-british',
+        name: 'Somaliland, British (fyrir 1960)',
+        region: 'Africa',
+        svgId: 'so',
+    },
+    { id: 'tangier', name: 'Tangier (fyrir 1960)', region: 'Africa', svgId: 'ma' },
+    {
+        id: 'togoland-british',
+        name: 'Togoland, British (fyrir 1957)',
+        region: 'Africa',
+        svgId: 'gh',
+    },
+    { id: 'transkei', name: 'Transkei (fyrir 1994)', region: 'Africa', svgId: 'za' },
+    { id: 'venda', name: 'Venda (fyrir 1994)', region: 'Africa', svgId: 'za' },
+    { id: 'walvis-bay', name: 'Walvis Bay (fyrir 1994)', region: 'Africa', svgId: 'na' },
+
+    // MIDDLE EAST
+    {
+        id: 'ye-south',
+        name: 'Yemen, Republic of South (fyrir 2004)',
+        region: 'Middle East',
+        svgId: 'ye',
+    },
+
+    // INDIAN OCEAN
+    {
+        id: 'andaman-islands',
+        name: 'Andaman Islands (fyrir 1980)',
+        region: 'Indian Ocean',
+        svgId: 'in',
+    },
+    {
+        id: 'nicobar-islands',
+        name: 'Nicobar Islands (fyrir 1980)',
+        region: 'Indian Ocean',
+        svgId: 'in',
+    },
+
+    // ASIA
+    { id: 'in-assam', name: 'Assam (fyrir 1980)', region: 'Asia', svgId: 'in' },
+    { id: 'in-french', name: 'India, French (fyrir 1954)', region: 'Asia', svgId: 'in' },
+    { id: 'in-portuguese', name: 'India, Portuguese (fyrir 1961)', region: 'Asia', svgId: 'in' },
+    { id: 'vn-north', name: 'North Vietnam (fyrir 1975)', region: 'Asia', svgId: 'vn' },
+    { id: 'vn-south', name: 'South Vietnam (fyrir 1975)', region: 'Asia', svgId: 'vn' },
+    { id: 'tl-portuguese', name: 'Timor, Portuguese (fyrir 1976)', region: 'Asia', svgId: 'tl' },
+]
+
+export const allTerritories = [...territories, ...retiredTerritories]
+
+export const territoryMap = new Map(allTerritories.map((t) => [t.id, t]))
 
 // Map from svgId → all territories that use that SVG path
 export const svgToTerritories = new Map<string, Territory[]>()
-for (const t of territories) {
+for (const t of allTerritories) {
     if (!t.svgId) continue
     const list = svgToTerritories.get(t.svgId) ?? []
     list.push(t)
