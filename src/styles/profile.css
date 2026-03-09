@@ -36,6 +36,52 @@
     border-color: #7cb9e8;
 }
 
+.badges-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.badge {
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: default;
+    user-select: none;
+    border: 1px solid transparent;
+}
+
+.badge-earned {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: #f59e0b;
+    color: #fcd34d;
+}
+
+.badge-unearned {
+    background: linear-gradient(
+        to right,
+        rgba(245, 158, 11, 0.18) var(--progress, 0%),
+        #1e2130 var(--progress, 0%)
+    );
+    border-color: #2e3347;
+    color: #4b5563;
+}
+
 @media (max-width: 700px) {
     .profile-territory-list {
         column-count: 2;

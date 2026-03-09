@@ -3,6 +3,7 @@ import { authStore } from '../auth/authStore'
 import { territories, allTerritories } from '../data/territories'
 import { navbar, initNavHamburger } from '../components/nav'
 import { MapView } from '../components/MapView'
+import { computeBadges } from '../badges'
 
 export const ProfilePage = {
     render(params: Record<string, string>): HTMLElement {
@@ -35,6 +36,10 @@ export const ProfilePage = {
         <div id="map-container" class="map-container profile-map">
           <div class="map-loading">Hleður korti…</div>
         </div>
+        <div id="badges-section" class="badges-section">
+          <h2 class="section-title">Merki</h2>
+          <div id="badge-grid" class="badge-grid"></div>
+        </div>
         <div id="territory-list" class="profile-territory-list"></div>
       </div>
     `
@@ -53,6 +58,23 @@ export const ProfilePage = {
 
         function highlightMap() {
             mapView?.highlight()
+        }
+
+        function renderBadges() {
+            const grid = el.querySelector('#badge-grid') as HTMLElement
+            grid.innerHTML = ''
+            const badges = computeBadges(visited, allTerritories)
+            for (const badge of badges) {
+                const chip = document.createElement('div')
+                chip.className = `badge ${badge.earned ? 'badge-earned' : 'badge-unearned'}`
+                chip.title = badge.earned
+                    ? badge.description
+                    : `${badge.description} (${badge.progressDetail})`
+                if (!badge.earned)
+                    chip.style.setProperty('--progress', `${Math.round(badge.progress * 100)}%`)
+                chip.textContent = badge.label
+                grid.appendChild(chip)
+            }
         }
 
         function renderList() {
@@ -145,6 +167,7 @@ export const ProfilePage = {
             if (visits) visits.forEach((r) => visited.add(r.country_code))
             countEl.textContent = `${visited.size} / ${territories.length}`
             highlightMap()
+            renderBadges()
             renderList()
         })
 
