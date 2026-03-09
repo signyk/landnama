@@ -1,8 +1,9 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
-import { territories, svgToTerritories } from '../data/territories'
+import { territories } from '../data/territories'
 import { navigateTo } from '../router'
-import { navbar, initNavHamburger } from '../nav'
+import { navbar, initNavHamburger } from '../components/nav'
+import { MapView } from '../components/MapView'
 
 export const ProfilePage = {
   render(params: Record<string, string>): HTMLElement {
@@ -41,18 +42,14 @@ export const ProfilePage = {
     const listEl = el.querySelector('#territory-list') as HTMLElement
 
     const visited = new Set<string>()
-    let svgEl: SVGSVGElement | null = null
     const tooltip = document.createElement('div')
     tooltip.className = 'map-tooltip hidden'
     document.body.appendChild(tooltip)
 
+    let mapView: MapView | null = null
+
     function highlightMap() {
-      if (!svgEl) return
-      svgEl.querySelectorAll<Element>('path[id], circle[id]').forEach(path => {
-        const svgId = path.getAttribute('id')!
-        const related = svgToTerritories.get(svgId) ?? []
-        path.classList.toggle('visited', related.some(t => visited.has(t.id)))
-      })
+      mapView?.highlight()
     }
 
     function renderList() {
@@ -84,34 +81,9 @@ export const ProfilePage = {
       })
     }
 
-    // Load SVG (read-only, no click handlers)
-    fetch('/world.svg')
-      .then(r => r.text())
-      .then(svgText => {
-        mapContainer.innerHTML = svgText
-        svgEl = mapContainer.querySelector('svg')!
-        svgEl.setAttribute('width', '100%')
-        svgEl.setAttribute('height', '100%')
-
-        svgEl.querySelectorAll<Element>('path[id], circle[id]').forEach(path => {
-          const svgId = path.getAttribute('id')!
-          if (!svgToTerritories.has(svgId)) return
-          ;(path as HTMLElement).style.cursor = 'default'
-          path.addEventListener('mousemove', (e) => {
-            const options = svgToTerritories.get(svgId) ?? []
-            const me = e as MouseEvent
-            const visitedHere = options.filter(t => visited.has(t.id))
-            if (visitedHere.length === 0) return
-            tooltip.textContent = visitedHere.map(t => t.name).join(', ')
-            tooltip.classList.remove('hidden')
-            tooltip.style.left = `${me.clientX + 12}px`
-            tooltip.style.top = `${me.clientY - 28}px`
-          })
-          path.addEventListener('mouseleave', () => tooltip.classList.add('hidden'))
-        })
-
-        highlightMap()
-      })
+    // Load SVG (read-only)
+    mapView = new MapView({ container: mapContainer, visited, tooltip, visitedOnly: true })
+    mapView.load()
 
     initNavHamburger(el)
 

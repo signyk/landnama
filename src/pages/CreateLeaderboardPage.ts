@@ -1,7 +1,7 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
 import { navigateTo } from '../router'
-import { navbar, initNavHamburger } from '../nav'
+import { navbar, initNavHamburger } from '../components/nav'
 
 export const CreateLeaderboardPage = {
   render(_params: Record<string, string>): HTMLElement {

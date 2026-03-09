@@ -1,4 +1,4 @@
-import { navbar, initNavHamburger } from '../nav'
+import { navbar, initNavHamburger } from '../components/nav'
 import { authStore } from '../auth/authStore'
 
 export const AboutPage = {

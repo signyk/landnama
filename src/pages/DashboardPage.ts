@@ -1,7 +1,8 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
 import { territories, svgToTerritories } from '../data/territories'
-import { navbar, initNavHamburger } from '../nav'
+import { navbar, initNavHamburger } from '../components/nav'
+import { MapView } from '../components/MapView'
 
 export const DashboardPage = {
   render(_params: Record<string, string>): HTMLElement {
@@ -76,8 +77,6 @@ export const DashboardPage = {
     const searchInput = el.querySelector('#search') as HTMLInputElement
     const regionSelect = el.querySelector('#region-filter') as HTMLSelectElement
     const listEl = el.querySelector('#territory-list') as HTMLElement
-
-    let svgEl: SVGSVGElement | null = null
 
     function updateCount() {
       const text = `${visited.size} / ${territories.length}`
@@ -155,14 +154,10 @@ export const DashboardPage = {
       `
     }
 
+    let mapView: MapView | null = null
+
     function highlightMap() {
-      if (!svgEl) return
-      svgEl.querySelectorAll<Element>('path[id], circle[id]').forEach(path => {
-        const svgId = path.getAttribute('id')!
-        const relatedTerritories = svgToTerritories.get(svgId) ?? []
-        const anyVisited = relatedTerritories.some(t => visited.has(t.id))
-        path.classList.toggle('visited', anyVisited)
-      })
+      mapView?.highlight()
     }
 
     function renderList(filter = '', region = '') {
@@ -269,102 +264,14 @@ export const DashboardPage = {
     regionSelect.addEventListener('change', rerender)
 
     // Load SVG
-    fetch('/world.svg')
-      .then(r => r.text())
-      .then(svgText => {
-        mapContainer.innerHTML = svgText
-        svgEl = mapContainer.querySelector('svg')!
-        svgEl.setAttribute('width', '100%')
-        svgEl.setAttribute('height', '100%')
-
-        svgEl.querySelectorAll<Element>('path[id], circle[id]').forEach(path => {
-          const svgId = path.getAttribute('id')!
-          if (!svgToTerritories.has(svgId)) return
-
-          path.addEventListener('click', (e) => {
-            e.stopPropagation()
-            const me = e as MouseEvent
-            showPicker(svgId, me.clientX, me.clientY)
-          })
-
-          path.addEventListener('mousemove', (e) => {
-            const options = svgToTerritories.get(svgId) ?? []
-            const me = e as MouseEvent
-            tooltip.textContent = options.length === 1
-              ? options[0].name
-              : options.map(t => t.name).join(' / ')
-            tooltip.classList.remove('hidden')
-            tooltip.style.left = `${me.clientX + 12}px`
-            tooltip.style.top = `${me.clientY - 28}px`
-          })
-
-          path.addEventListener('mouseleave', () => tooltip.classList.add('hidden'))
-        })
-
-        highlightMap()
-
-        // Zoom + pan via viewBox manipulation
-        const ob = svgEl.viewBox.baseVal
-        const orig = { x: ob.x, y: ob.y, w: ob.width, h: ob.height }
-        let vx = orig.x, vy = orig.y, vw = orig.w, vh = orig.h
-
-        function applyVB() {
-          svgEl!.setAttribute('viewBox', `${vx} ${vy} ${vw} ${vh}`)
-        }
-
-        svgEl.addEventListener('wheel', (e) => {
-          e.preventDefault()
-          const rect = svgEl!.getBoundingClientRect()
-          const mx = (e.clientX - rect.left) / rect.width
-          const my = (e.clientY - rect.top) / rect.height
-          const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15
-          const newVw = Math.min(orig.w, vw / factor)
-          const newVh = Math.min(orig.h, vh / factor)
-          if (newVw >= orig.w) {
-            vx = orig.x; vy = orig.y; vw = orig.w; vh = orig.h
-            applyVB(); return
-          }
-          vx += mx * (vw - newVw)
-          vy += my * (vh - newVh)
-          vw = newVw; vh = newVh
-          applyVB()
-        }, { passive: false })
-
-        // Drag to pan
-        let panX = 0, panY = 0, isPanning = false, hasPanned = false
-        svgEl.addEventListener('pointerdown', (e) => {
-          if (e.button !== 0) return
-          isPanning = true; hasPanned = false
-          panX = e.clientX; panY = e.clientY
-        })
-        window.addEventListener('pointermove', (e) => {
-          if (!isPanning) return
-          const dx = e.clientX - panX
-          const dy = e.clientY - panY
-          if (!hasPanned && Math.hypot(dx, dy) < 4) return
-          hasPanned = true
-          svgEl!.style.cursor = 'grabbing'
-          const rect = svgEl!.getBoundingClientRect()
-          vx -= dx / rect.width * vw
-          vy -= dy / rect.height * vh
-          panX = e.clientX; panY = e.clientY
-          applyVB()
-        })
-        window.addEventListener('pointerup', () => {
-          if (hasPanned) {
-            window.addEventListener('click', e => e.stopPropagation(), { capture: true, once: true })
-          }
-          isPanning = false
-          svgEl!.style.cursor = ''
-        })
-
-        // Double-click to reset
-        svgEl.addEventListener('dblclick', (e) => {
-          e.stopPropagation()
-          vx = orig.x; vy = orig.y; vw = orig.w; vh = orig.h
-          applyVB()
-        })
-      })
+    mapView = new MapView({
+      container: mapContainer,
+      visited,
+      tooltip,
+      onPathClick: (svgId, x, y) => showPicker(svgId, x, y),
+      zoomable: true,
+    })
+    mapView.load()
 
     // Fetch visits
     supabase

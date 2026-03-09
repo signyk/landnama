@@ -3,7 +3,7 @@ import { authStore } from '../auth/authStore'
 import { navigateTo } from '../router'
 import { territories } from '../data/territories'
 import { esc } from '../utils'
-import { navbar, initNavHamburger } from '../nav'
+import { navbar, initNavHamburger } from '../components/nav'
 
 type RankRow = {
   user_id: string
