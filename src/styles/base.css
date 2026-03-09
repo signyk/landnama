@@ -71,6 +71,17 @@ a:hover {
     font-size: 1.75rem;
 }
 
+.back-link {
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.back-link:hover {
+    color: var(--text);
+}
+
 .about-text {
     max-width: 600px;
     display: flex;

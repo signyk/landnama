@@ -22,6 +22,7 @@ export const LeaderboardDetailPage = {
       ${navbar('leaderboards', user.id)}
       <div class="page-content">
         <div id="lb-header" class="page-header">
+          <a href="/leaderboards" class="back-link">← Til baka</a>
           <h1 id="lb-name">Hleður…</h1>
         </div>
         <div id="rankings" class="rankings">Hleður…</div>
