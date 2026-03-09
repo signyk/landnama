@@ -11,6 +11,7 @@ body {
   background: #0f1117;
   color: #e8e8e8;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 a { color: #7cb9e8; text-decoration: none; }
