@@ -2,6 +2,7 @@ import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
 import { navigateTo } from '../router'
 import { territories } from '../data/territories'
+import { esc } from '../utils'
 
 type RankRow = {
   user_id: string
@@ -130,7 +131,7 @@ export const LeaderboardDetailPage = {
             ${rows.map(r => `
               <tr class="${r.user_id === user.id ? 'current-user' : ''}">
                 <td class="rank-cell">${r.rank}</td>
-                <td><a href="/profile/${r.user_id}">${r.display_name}</a></td>
+                <td><a href="/profile/${r.user_id}">${esc(r.display_name)}</a></td>
                 <td>${r.country_count} / ${territories.length}</td>
               </tr>
             `).join('')}

@@ -1,6 +1,7 @@
 import { supabase } from '../supabase'
 import { authStore } from '../auth/authStore'
 import { navigateTo } from '../router'
+import { esc } from '../utils'
 
 export const LeaderboardListPage = {
   render(_params: Record<string, string>): HTMLElement {
@@ -53,8 +54,8 @@ export const LeaderboardListPage = {
           card.href = `/leaderboards/${lb.id}`
           card.className = 'lb-card'
           card.innerHTML = `
-            <span class="lb-name">${lb.name}</span>
-            ${lb.description ? `<span class="lb-desc">${lb.description}</span>` : ''}
+            <span class="lb-name">${esc(lb.name)}</span>
+            ${lb.description ? `<span class="lb-desc">${esc(lb.description)}</span>` : ''}
             ${lb.owner_id === user.id ? '<span class="lb-badge">Eigandi</span>' : ''}
           `
           listEl.appendChild(card)
