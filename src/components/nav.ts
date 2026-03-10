@@ -1,6 +1,6 @@
 type NavPage = 'home' | 'leaderboards' | 'about' | 'profile'
 
-export function navbar(active: NavPage, userId?: string): string {
+export function navbar(active: NavPage | null, userId?: string): string {
     const link = (page: NavPage, href: string, label: string) =>
         page === active
             ? `<span class="nav-link-active">${label}</span>`

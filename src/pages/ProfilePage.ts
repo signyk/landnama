@@ -13,9 +13,10 @@ export const ProfilePage = {
         const isOwnProfile = uid === currentUser.id
 
         el.innerHTML = `
-      ${navbar(isOwnProfile ? 'profile' : 'home', currentUser.id)}
+      ${navbar(isOwnProfile ? 'profile' : null, currentUser.id)}
       <div class="page-content">
         <div id="profile-header" class="page-header">
+          ${!isOwnProfile ? '<button id="back-btn" class="back-link">← Til baka</button>' : ''}
           <h1 id="profile-name">Loading…</h1>
           <span id="profile-count" class="count-badge"></span>
           ${isOwnProfile ? '<button id="edit-name-btn" class="btn-ghost">Breyta nafni</button>' : ''}
@@ -111,6 +112,10 @@ export const ProfilePage = {
         mapView.load()
 
         initNavHamburger(el)
+
+        if (!isOwnProfile) {
+            el.querySelector('#back-btn')!.addEventListener('click', () => history.back())
+        }
 
         // Sign out
         if (isOwnProfile) {
