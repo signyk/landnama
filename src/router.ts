@@ -80,6 +80,12 @@ const routes: Route[] = [
         loader: () => import('./pages/AboutPage').then((m) => m.AboutPage),
         requiresAuth: false,
     },
+    {
+        pattern: /^\/privacy$/,
+        keys: [],
+        loader: () => import('./pages/PrivacyPage').then((m) => m.PrivacyPage),
+        requiresAuth: false,
+    },
 ]
 
 const app = document.getElementById('app')!

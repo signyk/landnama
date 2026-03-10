@@ -43,6 +43,7 @@ export const AboutPage = {
             Höfundur Landnámu (þessarar vefsíðu, ekki elstu heimildar um landnám Íslands) er Signý Kristín. Frumkóðinn er aðgengilegur á
             <a href="https://github.com/signyk/landnama" target="_blank" rel="noopener">GitHub</a>.
           </p>
+          <p><a href="/privacy" class="muted" style="font-size:0.8rem">Persónuverndarstefna</a></p>
         </div>
       </div>
     `

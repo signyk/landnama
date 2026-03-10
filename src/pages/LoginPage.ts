@@ -16,6 +16,7 @@ export const LoginPage = {
         </form>
         <p>Ekki með aðgang? <a href="/register">Nýskrá</a></p>
         <p><a href="/forgot-password">Gleymt lykilorð?</a></p>
+        <p><a href="/privacy" class="muted" style="font-size:0.8rem">Persónuverndarstefna</a></p>
       </div>
     `
 

@@ -15,6 +15,7 @@ export const RegisterPage = {
           <p id="error" class="error"></p>
         </form>
         <p>Ertu nú þegar með aðgang? <a href="/">Skrá inn</a></p>
+        <p class="muted" style="font-size:0.8rem">Með því að nýskrá samþykkir þú <a href="/privacy">persónuverndarstefnu</a> okkar.</p>
       </div>
     `
 

@@ -42,6 +42,18 @@ export const ProfilePage = {
           <div id="badge-grid" class="badge-grid"></div>
         </div>
         <div id="territory-list" class="profile-territory-list"></div>
+        ${
+            isOwnProfile
+                ? `
+        <div class="danger-section" style="margin-top:2rem">
+          <h3 style="margin-bottom:0.5rem">Eyða aðgangi</h3>
+          <p class="muted" style="margin-bottom:0.75rem">Þetta eyðir öllum ferðagögnum þínum og er óafturkræft.</p>
+          <button id="delete-account-btn" class="btn-danger">Eyða aðgangi</button>
+          <span id="delete-error" class="error"></span>
+        </div>
+        `
+                : ''
+        }
       </div>
     `
 
@@ -120,6 +132,23 @@ export const ProfilePage = {
         // Sign out
         if (isOwnProfile) {
             el.querySelector('#signout-btn')!.addEventListener('click', async () => {
+                await supabase.auth.signOut({ scope: 'local' })
+                history.pushState(null, '', '/')
+                window.dispatchEvent(new PopStateEvent('popstate'))
+            })
+        }
+
+        // Delete account (own profile only)
+        if (isOwnProfile) {
+            el.querySelector('#delete-account-btn')!.addEventListener('click', async () => {
+                if (!confirm('Ertu viss? Þetta eyðir öllum ferðagögnum þínum og er óafturkræft.'))
+                    return
+                const deleteErrorEl = el.querySelector('#delete-error') as HTMLElement
+                const { error } = await supabase.rpc('delete_my_account')
+                if (error) {
+                    deleteErrorEl.textContent = error.message
+                    return
+                }
                 await supabase.auth.signOut({ scope: 'local' })
                 history.pushState(null, '', '/')
                 window.dispatchEvent(new PopStateEvent('popstate'))
