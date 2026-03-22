@@ -3,7 +3,8 @@ import { authStore } from '../auth/authStore'
 import { territories, allTerritories } from '../data/territories'
 import { navbar, initNavHamburger } from '../components/nav'
 import { MapView } from '../components/MapView'
-import { computeBadges } from '../badges'
+import { computeBadgeCategories } from '../badges'
+import type { BadgeLevel } from '../badges'
 
 export const ProfilePage = {
     render(params: Record<string, string>): HTMLElement {
@@ -73,20 +74,81 @@ export const ProfilePage = {
             mapView?.highlight()
         }
 
+        const TIER_LABELS: Record<BadgeLevel, string> = {
+            bronze: 'Brons',
+            silver: 'Silfur',
+            gold: 'Gull',
+            platinum: 'Platína',
+            diamond: 'Demantur',
+        }
+
+        let activePopover: HTMLElement | null = null
+
+        function closePopover() {
+            activePopover?.remove()
+            activePopover = null
+            document.removeEventListener('click', closePopover)
+        }
+
         function renderBadges() {
             const grid = el.querySelector('#badge-grid') as HTMLElement
             grid.innerHTML = ''
-            const badges = computeBadges(visited, allTerritories)
-            for (const badge of badges) {
-                const chip = document.createElement('div')
-                chip.className = `badge ${badge.earned ? 'badge-earned' : 'badge-unearned'}`
-                chip.title = badge.earned
-                    ? badge.description
-                    : `${badge.description} (${badge.progressDetail})`
-                if (!badge.earned)
-                    chip.style.setProperty('--progress', `${Math.round(badge.progress * 100)}%`)
-                chip.textContent = badge.label
-                grid.appendChild(chip)
+            const categories = computeBadgeCategories(visited, allTerritories)
+
+            for (const cat of categories) {
+                const levelClass = cat.earned ? `badge-level-${cat.earned}` : 'badge-level-unearned'
+                const btn = document.createElement('button')
+                btn.className = `badge-icon-btn ${levelClass}`
+                btn.innerHTML = cat.icon
+                btn.setAttribute('aria-label', cat.label)
+
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation()
+                    if (activePopover?.dataset.badgeId === cat.id) {
+                        closePopover()
+                        return
+                    }
+                    closePopover()
+
+                    const popover = document.createElement('div')
+                    popover.className = `badge-popover ${levelClass}`
+                    popover.dataset.badgeId = cat.id
+
+                    const tierHtml = cat.earned
+                        ? `<span class="badge-popover-tier badge-tier-${cat.earned}">${TIER_LABELS[cat.earned]}</span>`
+                        : `<span class="badge-popover-tier badge-tier-unearned">Ekki unnið</span>`
+
+                    const pct = Math.round(cat.progress * 100)
+                    popover.innerHTML = `
+                        <div class="badge-popover-header">
+                            <span class="badge-popover-label">${cat.label}</span>
+                            ${tierHtml}
+                        </div>
+                        <p class="badge-popover-desc">${cat.description}</p>
+                        <div class="badge-popover-progress-wrap">
+                            <div class="badge-popover-progress-track">
+                                <div class="badge-popover-progress-fill" style="width:${pct}%"></div>
+                            </div>
+                            <span class="badge-popover-progress-detail">${cat.progressDetail}</span>
+                        </div>
+                    `
+
+                    document.body.appendChild(popover)
+                    activePopover = popover
+
+                    // Position above the button, clamped to viewport
+                    const rect = btn.getBoundingClientRect()
+                    const popoverWidth = 220
+                    const gap = 8
+                    let left = rect.left + rect.width / 2 - popoverWidth / 2
+                    left = Math.max(gap, Math.min(left, window.innerWidth - popoverWidth - gap))
+                    popover.style.left = `${left}px`
+                    popover.style.top = `${rect.top - popover.offsetHeight - gap}px`
+
+                    document.addEventListener('click', closePopover)
+                })
+
+                grid.appendChild(btn)
             }
         }
 
