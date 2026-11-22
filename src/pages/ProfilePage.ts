@@ -48,7 +48,7 @@ export const ProfilePage = {
                 ? `
         <div class="danger-section" style="margin-top:2rem">
           <h3 style="margin-bottom:0.5rem">Eyða aðgangi</h3>
-          <p class="muted" style="margin-bottom:0.75rem">Þetta eyðir öllum ferðagögnum þínum og er óafturkræft.</p>
+          <p class="muted" style="margin-bottom:0.75rem">Þetta eyðir öllum ferðagögnum þínum og er óafturkræft. Stigatöflur sem þú átt færast til annars meðlims.</p>
           <button id="delete-account-btn" class="btn-danger">Eyða aðgangi</button>
           <span id="delete-error" class="error"></span>
         </div>
