@@ -9,7 +9,7 @@ export const PrivacyPage = {
       <div class="page-content">
         <h1>Persónuverndarstefna</h1>
         <div class="about-text">
-          <p>Síðast uppfært: mars 2026</p>
+          <p>Síðast uppfært: nóvember 2026</p>
           <h2>Hvaða gögn við geymum</h2>
           <p>
             Við geymum netfangið þitt (notað til að auðkenna þig) og þær ferðaupplýsingar sem þú skráir — þ.e. hvaða lönd og svæði þú hefur merkt sem heimsótt.
@@ -25,9 +25,15 @@ export const PrivacyPage = {
             Gögn eru geymd hjá <a href="https://supabase.com" target="_blank" rel="noopener">Supabase</a>, sem er gagnaveita þessarar síðu.
             Supabase starfar í samræmi við GDPR.
           </p>
+          <p>
+            Dulkóðuð öryggisafrit af gagnagrunninum eru tekin daglega og geymd hjá
+            <a href="https://www.cloudflare.com" target="_blank" rel="noopener">Cloudflare</a>.
+            Afritunum er eytt sjálfkrafa eftir 30 daga.
+          </p>
           <h2>Eyðing gagna</h2>
           <p>
             Þú getur eytt aðgangi þínum og öllum tengdum gögnum á <a href="/profile/${authStore.user?.id ?? ''}">prófílsíðu þinni</a> (undir „Eyða aðgangi").
+            Gögnin geta verið áfram í dulkóðuðum öryggisafritum í allt að 30 daga eftir eyðingu.
           </p>
         </div>
       </div>

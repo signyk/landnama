@@ -1,0 +1,128 @@
+name: Nightly backup
+
+# Dumps the database, encrypts it with age (public key only; the private key never
+# touches GitHub) and uploads the encrypted file to a private Cloudflare R2 bucket.
+# This repo is public: never print data, never use upload-artifact here.
+# Setup and restore instructions: docs/BACKUPS.md
+
+on:
+    schedule:
+        - cron: '17 3 * * *' # 03:17 UTC every day
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: backup
+    cancel-in-progress: false
+
+jobs:
+    backup:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 15
+        steps:
+            - name: Install pg_dump 17 and age
+              run: |
+                  set -euo pipefail
+                  sudo install -d /usr/share/postgresql-common/pgdg
+                  sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+                      https://www.postgresql.org/media/keys/ACCC4CF8.asc
+                  echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" \
+                      | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+                  sudo apt-get update -qq
+                  sudo apt-get install -y -qq postgresql-client-17 age > /dev/null
+
+            - name: Dump, encrypt and upload
+              env:
+                  DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+                  AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+                  R2_BUCKET: ${{ vars.R2_BUCKET }}
+                  R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+                  AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+                  AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+                  AWS_DEFAULT_REGION: auto
+                  AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+                  AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+              run: |
+                  set -euo pipefail
+                  for v in DATABASE_URL AGE_RECIPIENT R2_BUCKET R2_ENDPOINT AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+                      [ -n "${!v}" ] || { echo "::error::Missing secret/variable: $v"; exit 1; }
+                  done
+
+                  PG=/usr/lib/postgresql/17/bin
+                  name="landnama-$(date -u +%Y-%m-%dT%H%MZ).sql.age"
+                  out="$RUNNER_TEMP/$name"
+                  umask 077
+
+                  q() { "$PG/psql" "$DATABASE_URL" -X -q -A -t -v ON_ERROR_STOP=1 "$@"; }
+
+                  # Plaintext only ever exists inside this pipe; only ciphertext hits disk.
+                  # Login tokens (auth.sessions, auth.refresh_tokens, ...) are deliberately
+                  # excluded, and the backup_reader role cannot read them anyway.
+                  {
+                      # 1. public schema. Keeps GRANTs (anon/authenticated/service_role) so a
+                      #    restore is exact; the sed makes it restorable into a fresh Supabase
+                      #    project, where `public` already exists and backup_reader doesn't.
+                      "$PG/pg_dump" "$DATABASE_URL" --schema-only --schema=public --no-owner \
+                          | sed -E \
+                              -e 's/^CREATE SCHEMA public;$/CREATE SCHEMA IF NOT EXISTS public;/' \
+                              -e '/ TO backup_reader;$/d'
+
+                      # 2. auth.users / auth.identities. Supabase won't let us grant on the auth
+                      #    schema, so backup_reader reads them through views in the `backup`
+                      #    schema (see docs/BACKUPS.md). Emitted as COPY blocks targeting the real
+                      #    auth tables; generated columns are skipped (they can't be inserted).
+                      for t in users identities; do
+                          cols=$(q -c "SELECT string_agg(quote_ident(a.attname), ', ' ORDER BY a.attnum)
+                              FROM pg_attribute a
+                              JOIN pg_class c ON c.oid = a.attrelid
+                              JOIN pg_namespace n ON n.oid = c.relnamespace
+                              WHERE n.nspname = 'auth' AND c.relname = '$t'
+                                AND a.attnum > 0 AND NOT a.attisdropped AND a.attgenerated = ''
+                                AND a.attname IN (
+                                    SELECT va.attname FROM pg_attribute va
+                                    JOIN pg_class vc ON vc.oid = va.attrelid
+                                    JOIN pg_namespace vn ON vn.oid = vc.relnamespace
+                                    WHERE vn.nspname = 'backup' AND vc.relname = 'auth_$t'
+                                      AND va.attnum > 0)")
+                          if [ -z "$cols" ]; then
+                              echo "::error::No readable columns for auth.$t (is backup.auth_$t missing?)" >&2
+                              exit 1
+                          fi
+                          echo "COPY auth.$t ($cols) FROM stdin;"
+                          q -c "COPY (SELECT $cols FROM backup.auth_$t) TO STDOUT"
+                          echo '\.'
+                      done
+
+                      # 3. App data.
+                      "$PG/pg_dump" "$DATABASE_URL" --data-only --no-owner --no-privileges \
+                          --table=public.profiles \
+                          --table=public.visits \
+                          --table=public.leaderboards \
+                          --table=public.leaderboard_members \
+                          --table=public.territories
+
+                      # 4. Triggers on auth tables (e.g. on_auth_user_created -> handle_new_user)
+                      #    aren't in the public schema dump. Emitted last so they don't fire
+                      #    during restore. Empty search_path makes pg_get_triggerdef
+                      #    schema-qualify everything.
+                      echo '-- Triggers on auth tables'
+                      q -c "SET search_path = ''" -c \
+                          "SELECT pg_get_triggerdef(t.oid) || ';' FROM pg_trigger t
+                           JOIN pg_class c ON c.oid = t.tgrelid
+                           JOIN pg_namespace n ON n.oid = c.relnamespace
+                           WHERE n.nspname = 'auth' AND NOT t.tgisinternal
+                           ORDER BY t.tgname"
+                  } | age --encrypt --recipient "$AGE_RECIPIENT" > "$out"
+
+                  size=$(stat -c%s "$out")
+                  if [ "$size" -lt 10000 ]; then
+                      echo "::error::Encrypted backup is only $size bytes, something is wrong"
+                      exit 1
+                  fi
+
+                  aws s3 cp "$out" "s3://$R2_BUCKET/$name" \
+                      --endpoint-url "$R2_ENDPOINT" --only-show-errors
+                  rm -f "$out"
+                  echo "Uploaded $name ($size bytes, encrypted)"
