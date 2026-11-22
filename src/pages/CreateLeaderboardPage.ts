@@ -48,7 +48,6 @@ export const CreateLeaderboardPage = {
                 user_id: user.id,
             })
             if (memberError) {
-                // Without membership the owner can't see their own leaderboard; undo it
                 console.error('add owner as member error:', memberError)
                 await supabase.from('leaderboards').delete().eq('id', data.id)
                 errEl.textContent = 'Ekki tókst að búa til stigatöfluna. Reyndu aftur.'

@@ -6,7 +6,6 @@ import { esc } from '../utils'
 import { navbar, initNavHamburger } from '../components/nav'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
-// Module-level so destroy() (called unbound by the router) can clean up
 let channel: RealtimeChannel | null = null
 let reloadTimer: number | undefined
 
@@ -100,8 +99,7 @@ export const LeaderboardDetailPage = {
                 dangerBtn.disabled = true
                 dangerError.textContent = ''
 
-                // .select() returns the deleted rows: RLS can silently match zero rows,
-                // which Supabase does not report as an error.
+                // RLS can match zero rows without returning an error
                 const { data, error } = isOwner
                     ? await supabase.from('leaderboards').delete().eq('id', lbId).select('id')
                     : await supabase
@@ -171,15 +169,11 @@ export const LeaderboardDetailPage = {
 
         loadLeaderboard()
 
-        // Live updates: reload rankings when a visit changes. RLS limits insert events
-        // to visits this user may see. Only `visits` is subscribed: delete events skip
-        // RLS and carry the primary key, which for visits is just a random id (for
-        // leaderboard_members it would reveal who left which leaderboard).
+        // Don't subscribe to leaderboard_members: delete events bypass RLS
         cleanup()
         channel = supabase
             .channel(`lb-${lbId}`)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'visits' }, () => {
-                // Debounce: someone ticking several territories triggers one reload
                 window.clearTimeout(reloadTimer)
                 reloadTimer = window.setTimeout(() => void loadRankings(), 500)
             })

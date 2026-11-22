@@ -1,9 +1,6 @@
 name: Nightly backup
 
-# Dumps the database, encrypts it with age (public key only; the private key never
-# touches GitHub) and uploads the encrypted file to a private Cloudflare R2 bucket.
-# This repo is public: never print data, never use upload-artifact here.
-# Setup and restore instructions: docs/BACKUPS.md
+# Public repo: never print data or upload artifacts here. See docs/BACKUPS.md
 
 on:
     schedule:
@@ -57,24 +54,15 @@ jobs:
 
                   q() { "$PG/psql" "$DATABASE_URL" -X -q -A -t -v ON_ERROR_STOP=1 "$@"; }
 
-                  # Plaintext only ever exists inside this pipe; only ciphertext hits disk.
-                  # Login tokens (auth.sessions, auth.refresh_tokens, ...) are deliberately
-                  # excluded, and the backup_reader role cannot read them anyway.
+                  # Plaintext only exists inside this pipe
                   {
-                      # 0. A fresh Supabase project grants anon/authenticated ALL on every new
-                      #    object in public. pg_dump only emits GRANTs (never revokes those
-                      #    defaults) and restores default privileges last, so close them first;
-                      #    the dump's own GRANTs then reproduce production's permissions exactly.
+                      # Fresh projects grant anon ALL on new objects; pg_dump never revokes that
                       echo '-- Make new objects in public start closed (as in production)'
                       echo 'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated;'
                       echo 'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON SEQUENCES FROM anon, authenticated;'
                       echo 'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON FUNCTIONS FROM anon, authenticated;'
 
-                      # 1. public + private schemas (private holds the RLS helper functions).
-                      #    Keeps GRANTs so a restore is exact. The sed makes it restorable as
-                      #    `postgres` into a fresh Supabase project: `public` already exists,
-                      #    backup_reader doesn't, and supabase_admin's default privileges are
-                      #    already there (and postgres isn't allowed to set them).
+                      # sed: make it restorable as postgres into a fresh project
                       "$PG/pg_dump" "$DATABASE_URL" --schema-only --schema=public --schema=private \
                           --no-owner \
                           | sed -E \
@@ -82,10 +70,7 @@ jobs:
                               -e '/ TO backup_reader;$/d' \
                               -e '/^ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin /d'
 
-                      # 2. auth.users / auth.identities. Supabase won't let us grant on the auth
-                      #    schema, so backup_reader reads them through views in the `backup`
-                      #    schema (see docs/BACKUPS.md). Emitted as COPY blocks targeting the real
-                      #    auth tables; generated columns are skipped (they can't be inserted).
+                      # auth tables via backup.* views; generated columns skipped
                       for t in users identities; do
                           cols=$(q -c "SELECT string_agg(quote_ident(a.attname), ', ' ORDER BY a.attnum)
                               FROM pg_attribute a
@@ -108,7 +93,6 @@ jobs:
                           echo '\.'
                       done
 
-                      # 3. App data.
                       "$PG/pg_dump" "$DATABASE_URL" --data-only --no-owner --no-privileges \
                           --table=public.profiles \
                           --table=public.visits \
@@ -116,10 +100,7 @@ jobs:
                           --table=public.leaderboard_members \
                           --table=public.territories
 
-                      # 4. Triggers on auth tables (e.g. on_auth_user_created -> handle_new_user)
-                      #    aren't in the public schema dump. Emitted last so they don't fire
-                      #    during restore. Empty search_path makes pg_get_triggerdef
-                      #    schema-qualify everything.
+                      # Auth triggers last so they don't fire during restore
                       echo '-- Triggers on auth tables'
                       q -c "SET search_path = ''" -c \
                           "SELECT pg_get_triggerdef(t.oid) || ';' FROM pg_trigger t
