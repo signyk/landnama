@@ -11,7 +11,7 @@ Every night, `.github/workflows/backup.yml` dumps the database, encrypts it, and
 - **Kept for 30 days**, enforced by an R2 lifecycle rule. That matches the privacy policy: a deleted account is gone from backups within 30 days.
 - **This repo is public.** Never add `actions/upload-artifact` or anything that prints data to the backup workflow.
 
-> **If you add a new table**, add it to the `--table` list in `backup.yml` **and** run `GRANT SELECT ON public.<table> TO backup_reader;`, otherwise it won't be backed up.
+> **If you add a new table**, run `GRANT SELECT ON <schema>.<table> TO backup_reader;`, otherwise the nightly backup fails. To back up its rows too, add it to the `--table` list in `backup.yml`.
 
 ## One-time setup
 
@@ -55,7 +55,11 @@ REVOKE ALL ON SCHEMA backup FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON backup.auth_users, backup.auth_identities FROM PUBLIC, anon, authenticated;
 GRANT USAGE ON SCHEMA backup TO backup_reader;
 GRANT SELECT ON backup.auth_users, backup.auth_identities TO backup_reader;
+GRANT USAGE ON SCHEMA private TO backup_reader;
+GRANT SELECT ON private.error_log TO backup_reader;
 ```
+
+`pg_dump` locks every table it dumps, even for the schema only, so `backup_reader` needs `SELECT` on every table in `public` and `private`. The error log's rows aren't backed up, only its structure.
 
 Don't add `backup` to the exposed schemas under API settings. It must stay invisible to the website's API.
 

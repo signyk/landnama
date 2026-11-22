@@ -30,6 +30,10 @@ export const PrivacyPage = {
             <a href="https://www.cloudflare.com" target="_blank" rel="noopener">Cloudflare</a>.
             Afritunum er eytt sjálfkrafa eftir 30 daga.
           </p>
+          <p>
+            Ef villa kemur upp í vefnum skráum við villuboðin, á hvaða síðu hún varð og tegund vafra,
+            tengt aðganginum þínum, svo hægt sé að laga hana. Þessum skráningum er eytt sjálfkrafa eftir 30 daga.
+          </p>
           <h2>Eyðing gagna</h2>
           <p>
             Þú getur eytt aðgangi þínum og öllum tengdum gögnum á <a href="/profile/${authStore.user?.id ?? ''}">prófílsíðu þinni</a> (undir „Eyða aðgangi").

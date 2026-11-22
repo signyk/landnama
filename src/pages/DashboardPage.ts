@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { logError } from '../errorLog'
 import { authStore } from '../auth/authStore'
 import {
     territories,
@@ -283,7 +284,7 @@ export const DashboardPage = {
             }
 
             if (error) {
-                console.error('toggle visit error:', error)
+                logError('toggle visit', error)
                 // Roll back so the UI matches the database
                 if (wasVisited) visited.add(id)
                 else visited.delete(id)
@@ -386,7 +387,7 @@ export const DashboardPage = {
             .select('country_code')
             .eq('user_id', user.id)
             .then(({ data, error }) => {
-                if (error) console.error('fetch visits error:', error)
+                if (error) logError('fetch visits', error)
                 const validIds = new Set(territoryMap.keys())
                 if (data)
                     data.forEach((r) => {

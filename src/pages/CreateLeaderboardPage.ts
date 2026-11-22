@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { logError } from '../errorLog'
 import { authStore } from '../auth/authStore'
 import { navigateTo } from '../router'
 import { navbar, initNavHamburger } from '../components/nav'
@@ -48,7 +49,7 @@ export const CreateLeaderboardPage = {
                 user_id: user.id,
             })
             if (memberError) {
-                console.error('add owner as member error:', memberError)
+                logError('add owner as member', memberError)
                 await supabase.from('leaderboards').delete().eq('id', data.id)
                 errEl.textContent = 'Ekki tókst að búa til stigatöfluna. Reyndu aftur.'
                 return
