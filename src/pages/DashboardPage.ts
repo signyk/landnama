@@ -50,6 +50,7 @@ export const DashboardPage = {
           <div id="stats" class="stats-panel"></div>
         </div>
       </div>
+      <div id="toast" class="toast hidden" role="alert"></div>
     `
 
         initNavHamburger(el)
@@ -69,6 +70,7 @@ export const DashboardPage = {
         const mapContainer = el.querySelector('#map-container') as HTMLElement
         const tooltip = el.querySelector('#tooltip') as HTMLElement
         const picker = el.querySelector('#picker') as HTMLElement
+        const toast = el.querySelector('#toast') as HTMLElement
         const searchInput = el.querySelector('#search') as HTMLInputElement
         const searchClear = el.querySelector('#search-clear') as HTMLButtonElement
         const listEl = el.querySelector('#territory-list') as HTMLElement
@@ -245,28 +247,59 @@ export const DashboardPage = {
             }
         }
 
-        async function toggleVisit(id: string, rowEl?: Element) {
-            const wasVisited = visited.has(id)
-            if (wasVisited) {
-                visited.delete(id)
-                rowEl?.classList.remove('visited')
-                const { error } = await supabase
-                    .from('visits')
-                    .delete()
-                    .eq('user_id', user.id)
-                    .eq('country_code', id)
-                if (error) console.error('delete error:', error)
-            } else {
-                visited.add(id)
-                rowEl?.classList.add('visited')
-                const { error } = await supabase
-                    .from('visits')
-                    .insert({ user_id: user.id, country_code: id })
-                if (error) console.error('insert error:', error)
-            }
+        // Territories with a save in flight; extra clicks are ignored until it settles
+        const pending = new Set<string>()
+
+        function refreshVisitUi(id: string) {
+            listEl.querySelector(`[data-id="${id}"]`)?.classList.toggle('visited', visited.has(id))
             highlightMap()
             updateCount()
             renderStats()
+        }
+
+        async function toggleVisit(id: string, rowEl?: Element) {
+            if (pending.has(id)) return
+            pending.add(id)
+
+            const wasVisited = visited.has(id)
+            // Optimistic update
+            if (wasVisited) visited.delete(id)
+            else visited.add(id)
+            rowEl?.classList.toggle('visited', !wasVisited)
+            refreshVisitUi(id)
+
+            let error: unknown = null
+            try {
+                const res = wasVisited
+                    ? await supabase
+                          .from('visits')
+                          .delete()
+                          .eq('user_id', user.id)
+                          .eq('country_code', id)
+                    : await supabase.from('visits').insert({ user_id: user.id, country_code: id })
+                error = res.error
+            } catch (e) {
+                error = e
+            }
+
+            if (error) {
+                console.error('toggle visit error:', error)
+                // Roll back so the UI matches the database
+                if (wasVisited) visited.add(id)
+                else visited.delete(id)
+                rowEl?.classList.toggle('visited', wasVisited)
+                refreshVisitUi(id)
+                showToast('Ekki tókst að vista. Reyndu aftur.')
+            }
+            pending.delete(id)
+        }
+
+        let toastTimer: number | undefined
+        function showToast(message: string) {
+            toast.textContent = message
+            toast.classList.remove('hidden')
+            window.clearTimeout(toastTimer)
+            toastTimer = window.setTimeout(() => toast.classList.add('hidden'), 4000)
         }
 
         function showPicker(svgId: string, x: number, y: number) {

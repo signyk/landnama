@@ -300,6 +300,27 @@
     display: none;
 }
 
+/* Error toast */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.5rem;
+    transform: translateX(-50%);
+    max-width: calc(100vw - 2rem);
+    background: #3b1d22;
+    border: 1px solid #f87171;
+    color: #fecaca;
+    border-radius: 8px;
+    padding: 0.625rem 1rem;
+    font-size: 0.9375rem;
+    z-index: 300;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.toast.hidden {
+    display: none;
+}
+
 /* Territory picker */
 .picker {
     position: fixed;
