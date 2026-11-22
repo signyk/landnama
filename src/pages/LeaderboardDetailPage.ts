@@ -4,6 +4,18 @@ import { navigateTo } from '../router'
 import { territories } from '../data/territories'
 import { esc } from '../utils'
 import { navbar, initNavHamburger } from '../components/nav'
+import type { RealtimeChannel } from '@supabase/supabase-js'
+
+let channel: RealtimeChannel | null = null
+let reloadTimer: number | undefined
+
+function cleanup() {
+    window.clearTimeout(reloadTimer)
+    if (channel) {
+        void supabase.removeChannel(channel)
+        channel = null
+    }
+}
 
 type RankRow = {
     user_id: string
@@ -68,33 +80,45 @@ export const LeaderboardDetailPage = {
             lbNameEl.textContent = lb.name
             inviteInput.value = `${window.location.origin}/join?token=${lb.invite_token}`
 
-            if (lb.owner_id === user.id) {
-                ownerActionsEl.innerHTML = `
+            const isOwner = lb.owner_id === user.id
+            ownerActionsEl.innerHTML = `
           <div class="danger-section">
-            <button id="delete-lb" class="btn-danger">Eyða stigatöflu</button>
+            <button id="danger-btn" class="btn-danger">${isOwner ? 'Eyða stigatöflu' : 'Yfirgefa stigatöflu'}</button>
+            <p id="danger-error" class="error" role="alert"></p>
           </div>
         `
-                ownerActionsEl.querySelector('#delete-lb')!.addEventListener('click', async () => {
-                    if (!confirm(`Eyða "${lb.name}"? Þetta er óafturkræft.`)) return
-                    await supabase.from('leaderboards').delete().eq('id', lbId)
-                    navigateTo('/leaderboards')
-                })
-            } else {
-                ownerActionsEl.innerHTML = `
-          <div class="danger-section">
-            <button id="leave-lb" class="btn-danger">Yfirgefa stigatöflu</button>
-          </div>
-        `
-                ownerActionsEl.querySelector('#leave-lb')!.addEventListener('click', async () => {
-                    if (!confirm(`Yfirgefa "${lb.name}"?`)) return
-                    await supabase
-                        .from('leaderboard_members')
-                        .delete()
-                        .eq('leaderboard_id', lbId)
-                        .eq('user_id', user.id)
-                    navigateTo('/leaderboards')
-                })
-            }
+            const dangerBtn = ownerActionsEl.querySelector('#danger-btn') as HTMLButtonElement
+            const dangerError = ownerActionsEl.querySelector('#danger-error') as HTMLElement
+
+            dangerBtn.addEventListener('click', async () => {
+                const question = isOwner
+                    ? `Eyða "${lb.name}"? Þetta er óafturkræft.`
+                    : `Yfirgefa "${lb.name}"?`
+                if (!confirm(question)) return
+
+                dangerBtn.disabled = true
+                dangerError.textContent = ''
+
+                // RLS can match zero rows without returning an error
+                const { data, error } = isOwner
+                    ? await supabase.from('leaderboards').delete().eq('id', lbId).select('id')
+                    : await supabase
+                          .from('leaderboard_members')
+                          .delete()
+                          .eq('leaderboard_id', lbId)
+                          .eq('user_id', user.id)
+                          .select('user_id')
+
+                if (error || !data || data.length === 0) {
+                    if (error) console.error('leaderboard delete/leave error:', error)
+                    dangerError.textContent = isOwner
+                        ? 'Ekki tókst að eyða stigatöflunni. Reyndu aftur.'
+                        : 'Ekki tókst að yfirgefa stigatöfluna. Reyndu aftur.'
+                    dangerBtn.disabled = false
+                    return
+                }
+                navigateTo('/leaderboards')
+            })
 
             await loadRankings()
         }
@@ -145,22 +169,21 @@ export const LeaderboardDetailPage = {
 
         loadLeaderboard()
 
-        supabase
+        // Don't subscribe to leaderboard_members: delete events bypass RLS
+        cleanup()
+        channel = supabase
             .channel(`lb-${lbId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'visits',
-                },
-                () => loadRankings(),
-            )
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'visits' }, () => {
+                window.clearTimeout(reloadTimer)
+                reloadTimer = window.setTimeout(() => void loadRankings(), 500)
+            })
             .subscribe()
 
         initNavHamburger(el)
         return el
     },
 
-    destroy() {},
+    destroy() {
+        cleanup()
+    },
 }

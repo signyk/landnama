@@ -39,14 +39,21 @@ export const CreateLeaderboardPage = {
 
             if (error) {
                 errEl.textContent = error.message
-            } else {
-                // Also add creator as a member
-                await supabase.from('leaderboard_members').insert({
-                    leaderboard_id: data.id,
-                    user_id: user.id,
-                })
-                navigateTo(`/leaderboards/${data.id}`)
+                return
             }
+
+            // Also add creator as a member
+            const { error: memberError } = await supabase.from('leaderboard_members').insert({
+                leaderboard_id: data.id,
+                user_id: user.id,
+            })
+            if (memberError) {
+                console.error('add owner as member error:', memberError)
+                await supabase.from('leaderboards').delete().eq('id', data.id)
+                errEl.textContent = 'Ekki tókst að búa til stigatöfluna. Reyndu aftur.'
+                return
+            }
+            navigateTo(`/leaderboards/${data.id}`)
         })
 
         initNavHamburger(el)
