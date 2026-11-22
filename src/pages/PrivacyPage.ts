@@ -31,9 +31,8 @@ export const PrivacyPage = {
             Afritunum er eytt sjálfkrafa eftir 30 daga.
           </p>
           <p>
-            Ef villa kemur upp á vefnum skráum við hvað fór úrskeiðis og á hvaða síðu.
-            Við skráum líka hvaða vafra þú notar. Skráningin er tengd aðganginum þínum
-            og hjálpar okkur að laga villur. Henni er eytt sjálfkrafa eftir 30 daga.
+            Ef villa kemur upp á vefnum skráum við hvað fór úrskeiðis, á hvaða síðu og hvaða vafra þú varst að nota.
+            Skráningin er tengd aðganginum þínum og hjálpar okkur að laga villur. Henni er eytt sjálfkrafa eftir 30 daga.
           </p>
           <h2>Eyðing gagna</h2>
           <p>
