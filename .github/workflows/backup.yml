@@ -55,35 +55,64 @@ jobs:
                   out="$RUNNER_TEMP/$name"
                   umask 077
 
+                  q() { "$PG/psql" "$DATABASE_URL" -X -q -A -t -v ON_ERROR_STOP=1 "$@"; }
+
                   # Plaintext only ever exists inside this pipe; only ciphertext hits disk.
                   # Login tokens (auth.sessions, auth.refresh_tokens, ...) are deliberately
                   # excluded, and the backup_reader role cannot read them anyway.
-                  # Schema keeps GRANTs (anon/authenticated/service_role) so a restore is exact;
-                  # the sed makes it restorable into a fresh Supabase project, where `public`
-                  # already exists and backup_reader doesn't.
                   {
+                      # 1. public schema. Keeps GRANTs (anon/authenticated/service_role) so a
+                      #    restore is exact; the sed makes it restorable into a fresh Supabase
+                      #    project, where `public` already exists and backup_reader doesn't.
                       "$PG/pg_dump" "$DATABASE_URL" --schema-only --schema=public --no-owner \
                           | sed -E \
                               -e 's/^CREATE SCHEMA public;$/CREATE SCHEMA IF NOT EXISTS public;/' \
                               -e '/ TO backup_reader;$/d'
+
+                      # 2. auth.users / auth.identities. Supabase won't let us grant on the auth
+                      #    schema, so backup_reader reads them through views in the `backup`
+                      #    schema (see docs/BACKUPS.md). Emitted as COPY blocks targeting the real
+                      #    auth tables; generated columns are skipped (they can't be inserted).
+                      for t in users identities; do
+                          cols=$(q -c "SELECT string_agg(quote_ident(a.attname), ', ' ORDER BY a.attnum)
+                              FROM pg_attribute a
+                              JOIN pg_class c ON c.oid = a.attrelid
+                              JOIN pg_namespace n ON n.oid = c.relnamespace
+                              WHERE n.nspname = 'auth' AND c.relname = '$t'
+                                AND a.attnum > 0 AND NOT a.attisdropped AND a.attgenerated = ''
+                                AND a.attname IN (
+                                    SELECT va.attname FROM pg_attribute va
+                                    JOIN pg_class vc ON vc.oid = va.attrelid
+                                    JOIN pg_namespace vn ON vn.oid = vc.relnamespace
+                                    WHERE vn.nspname = 'backup' AND vc.relname = 'auth_$t'
+                                      AND va.attnum > 0)")
+                          if [ -z "$cols" ]; then
+                              echo "::error::No readable columns for auth.$t (is backup.auth_$t missing?)" >&2
+                              exit 1
+                          fi
+                          echo "COPY auth.$t ($cols) FROM stdin;"
+                          q -c "COPY (SELECT $cols FROM backup.auth_$t) TO STDOUT"
+                          echo '\.'
+                      done
+
+                      # 3. App data.
                       "$PG/pg_dump" "$DATABASE_URL" --data-only --no-owner --no-privileges \
-                          --table=auth.users \
-                          --table=auth.identities \
                           --table=public.profiles \
                           --table=public.visits \
                           --table=public.leaderboards \
                           --table=public.leaderboard_members \
                           --table=public.territories
-                      # Triggers on auth tables (e.g. on_auth_user_created -> handle_new_user)
-                      # aren't in the public schema dump; emit them last so they don't fire
-                      # during restore.
+
+                      # 4. Triggers on auth tables (e.g. on_auth_user_created -> handle_new_user)
+                      #    aren't in the public schema dump. Emitted last so they don't fire
+                      #    during restore. Empty search_path makes pg_get_triggerdef
+                      #    schema-qualify everything.
                       echo '-- Triggers on auth tables'
-                      # Empty search_path makes pg_get_triggerdef schema-qualify everything.
-                      "$PG/psql" "$DATABASE_URL" -X -q -A -t -v ON_ERROR_STOP=1 \
-                          -c "SET search_path = ''" -c \
+                      q -c "SET search_path = ''" -c \
                           "SELECT pg_get_triggerdef(t.oid) || ';' FROM pg_trigger t
                            JOIN pg_class c ON c.oid = t.tgrelid
-                           WHERE c.relnamespace = 'auth'::regnamespace AND NOT t.tgisinternal
+                           JOIN pg_namespace n ON n.oid = c.relnamespace
+                           WHERE n.nspname = 'auth' AND NOT t.tgisinternal
                            ORDER BY t.tgname"
                   } | age --encrypt --recipient "$AGE_RECIPIENT" > "$out"
 

@@ -39,20 +39,37 @@ Generate a password locally with `openssl rand -hex 32`, then run:
 
 ```sql
 CREATE ROLE backup_reader WITH LOGIN PASSWORD 'PASTE_PASSWORD_HERE' BYPASSRLS;
-GRANT USAGE ON SCHEMA public, auth TO backup_reader;
 GRANT SELECT ON public.profiles, public.visits, public.leaderboards,
                 public.leaderboard_members, public.territories TO backup_reader;
-GRANT SELECT ON auth.users, auth.identities TO backup_reader;
 ```
 
 `BYPASSRLS` is needed because every table has row-level security, which would otherwise hide rows from the dump. Combined with only `SELECT` grants, it means the role can **read** those tables and nothing else.
 
-Check it (should return `false`, `true`, `false`):
+Supabase's `auth` schema belongs to Supabase's internal `supabase_auth_admin` role, and `postgres` can read it but not grant access to it. (Trying only gives a _warning_, so the SQL editor still says "Success".) Instead, `backup_reader` reads logins through two views owned by `postgres`, in a private `backup` schema:
 
 ```sql
-SELECT has_table_privilege('backup_reader', 'auth.sessions', 'SELECT') AS sessions,
-       has_table_privilege('backup_reader', 'auth.users', 'SELECT')    AS users,
-       has_table_privilege('backup_reader', 'public.visits', 'INSERT') AS can_write;
+CREATE SCHEMA backup;
+CREATE VIEW backup.auth_users AS SELECT * FROM auth.users;
+CREATE VIEW backup.auth_identities AS SELECT * FROM auth.identities;
+REVOKE ALL ON SCHEMA backup FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON backup.auth_users, backup.auth_identities FROM PUBLIC, anon, authenticated;
+GRANT USAGE ON SCHEMA backup TO backup_reader;
+GRANT SELECT ON backup.auth_users, backup.auth_identities TO backup_reader;
+```
+
+Don't add `backup` to the exposed schemas under API settings. It must stay invisible to the website's API.
+
+The views capture the columns `auth.users` has **now**. If Supabase later adds columns, recreate them with `CREATE OR REPLACE VIEW ...` (same statements), otherwise new columns won't be backed up.
+
+Check it. Every column should be as labelled:
+
+```sql
+SELECT has_table_privilege('backup_reader', 'backup.auth_users', 'SELECT')     AS users_should_be_true,
+       has_table_privilege('backup_reader', 'public.visits', 'SELECT')         AS visits_should_be_true,
+       has_schema_privilege('backup_reader', 'auth', 'USAGE')                  AS auth_should_be_false,
+       has_table_privilege('backup_reader', 'public.visits', 'INSERT')         AS write_should_be_false,
+       has_table_privilege('anon', 'backup.auth_users', 'SELECT')              AS anon_should_be_false,
+       has_table_privilege('authenticated', 'backup.auth_users', 'SELECT')     AS authd_should_be_false;
 ```
 
 Connection string: Supabase dashboard → **Connect** → **Session pooler** (GitHub runners need IPv4, so not "Direct connection"). Replace the user `postgres.<project-ref>` with `backup_reader.<project-ref>` and use the password above, then add `?sslmode=require` at the end:
