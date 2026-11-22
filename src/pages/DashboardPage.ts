@@ -250,6 +250,7 @@ export const DashboardPage = {
 
         // Territories with a save in flight; extra clicks are ignored until it settles
         const pending = new Set<string>()
+        let visitsLoaded = false
 
         function refreshVisitUi(id: string) {
             listEl.querySelector(`[data-id="${id}"]`)?.classList.toggle('visited', visited.has(id))
@@ -259,7 +260,7 @@ export const DashboardPage = {
         }
 
         async function toggleVisit(id: string, rowEl?: Element) {
-            if (pending.has(id)) return
+            if (!visitsLoaded || pending.has(id)) return
             pending.add(id)
 
             const wasVisited = visited.has(id)
@@ -381,23 +382,35 @@ export const DashboardPage = {
         })
         mapView.load()
 
-        // Fetch visits
-        supabase
-            .from('visits')
-            .select('country_code')
-            .eq('user_id', user.id)
-            .then(({ data, error }) => {
-                if (error) logError('fetch visits', error)
-                const validIds = new Set(territoryMap.keys())
-                if (data)
-                    data.forEach((r) => {
-                        if (validIds.has(r.country_code)) visited.add(r.country_code)
-                    })
-                highlightMap()
-                updateCount()
-                renderList()
-                renderStats()
+        async function loadVisits() {
+            toast.classList.add('hidden')
+            const { data, error } = await supabase
+                .from('visits')
+                .select('country_code')
+                .eq('user_id', user.id)
+
+            if (error || !data) {
+                logError('fetch visits', error)
+                window.clearTimeout(toastTimer)
+                toast.innerHTML = `Ekki tókst að sækja heimsóknirnar þínar.
+                    <button type="button" class="toast-retry">Reyna aftur</button>`
+                toast.querySelector('.toast-retry')!.addEventListener('click', loadVisits)
+                toast.classList.remove('hidden')
+                return
+            }
+
+            const validIds = new Set(territoryMap.keys())
+            visited.clear()
+            data.forEach((r) => {
+                if (validIds.has(r.country_code)) visited.add(r.country_code)
             })
+            visitsLoaded = true
+            highlightMap()
+            updateCount()
+            renderList()
+            renderStats()
+        }
+        void loadVisits()
 
         renderList()
         return el
