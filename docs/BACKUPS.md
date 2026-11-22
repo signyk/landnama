@@ -131,9 +131,10 @@ Afterwards:
 
 1. Re-apply the settings that live outside the database: auth providers, email templates, redirect URLs, SMTP and the Data API exposed schemas (`public` only).
 2. Turn on automatic RLS for new tables again (the `ensure_rls` event trigger isn't part of the backup).
-3. Recreate the backup user and views (step 2 above) and update the `BACKUP_DATABASE_URL` secret.
-4. Check security: run the Security Advisor, and confirm that a logged-out request to `/rest/v1/profiles` gets a 401.
-5. Point the app's `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` at the new project and redeploy.
+3. Re-enable live leaderboard updates (realtime publications aren't part of the backup): `ALTER PUBLICATION supabase_realtime ADD TABLE public.visits;`
+4. Recreate the backup user and views (step 2 above) and update the `BACKUP_DATABASE_URL` secret.
+5. Check security: run the Security Advisor, and confirm that a logged-out request to `/rest/v1/profiles` gets a 401.
+6. Point the app's `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` at the new project and redeploy.
 
 Finally, delete the key file: `shred -u ~/landnama-backup-key.txt`.
 
