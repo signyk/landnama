@@ -321,6 +321,17 @@
     display: none;
 }
 
+.toast-retry {
+    margin-left: 0.75rem;
+    background: transparent;
+    border: 1px solid #fecaca;
+    color: #fecaca;
+    border-radius: 6px;
+    padding: 0.25rem 0.625rem;
+    font: inherit;
+    cursor: pointer;
+}
+
 /* Territory picker */
 .picker {
     position: fixed;

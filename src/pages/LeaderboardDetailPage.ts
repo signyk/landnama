@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { logError } from '../errorLog'
 import { authStore } from '../auth/authStore'
 import { navigateTo } from '../router'
 import { territories } from '../data/territories'
@@ -110,7 +111,10 @@ export const LeaderboardDetailPage = {
                           .select('user_id')
 
                 if (error || !data || data.length === 0) {
-                    if (error) console.error('leaderboard delete/leave error:', error)
+                    logError(
+                        isOwner ? 'delete leaderboard' : 'leave leaderboard',
+                        error ?? 'no rows deleted',
+                    )
                     dangerError.textContent = isOwner
                         ? 'Ekki tókst að eyða stigatöflunni. Reyndu aftur.'
                         : 'Ekki tókst að yfirgefa stigatöfluna. Reyndu aftur.'
