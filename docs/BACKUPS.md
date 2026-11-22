@@ -6,7 +6,7 @@ Every night, `.github/workflows/backup.yml` dumps the database, encrypts it, and
 
 - **Encrypted before upload.** The dump goes straight into [`age`](https://age-encryption.org), encrypted with a public key. Only the matching private key can decrypt it, and that key lives in your password manager, never on GitHub or Cloudflare. Unencrypted data only ever passes through a pipe on the GitHub runner. It is never written to disk, uploaded or logged.
 - **Read-only database user.** The job connects as `backup_reader`, which can only `SELECT` from the tables listed below. It cannot write anything or read login tokens.
-- **What's included:** the `public` schema (tables, functions, policies) and data from `auth.users`, `auth.identities`, `profiles`, `visits`, `leaderboards`, `leaderboard_members` and `territories`.
+- **What's included:** the `public` and `private` schemas (tables, views, functions, policies, permissions), triggers on `auth` tables (the signup trigger), and data from `auth.users`, `auth.identities`, `profiles`, `visits`, `leaderboards`, `leaderboard_members` and `territories`.
 - **What's excluded:** sessions, refresh tokens, one-time tokens, audit logs and MFA data. None of it is needed to restore, and it would be dangerous if leaked.
 - **Kept for 30 days**, enforced by an R2 lifecycle rule. That matches the privacy policy: a deleted account is gone from backups within 30 days.
 - **This repo is public.** Never add `actions/upload-artifact` or anything that prints data to the backup workflow.
@@ -108,27 +108,33 @@ Repo → **Settings** → **Secrets and variables** → **Actions**:
 
 ## Restoring
 
-Download a backup from the R2 dashboard, then decrypt it with the key from your password manager:
+> Last full restore test: **2026-11-23**, into a fresh local Supabase (Postgres 17.6, GoTrue v2.186.0), restoring as `postgres`. All row counts matched production, and the policies, permissions and signup trigger matched as well.
+
+You need the backup file (download it from the R2 dashboard) and the key from your password manager. Put the key in a file only you can read. The command waits for you to type or paste the key, then press Enter:
 
 ```bash
-# paste the key into a temporary file, readable only by you
-install -m 600 /dev/null /tmp/key.txt && nano /tmp/key.txt
-age --decrypt -i /tmp/key.txt landnama-….sql.age > restore.sql
-shred -u /tmp/key.txt
+install -m 600 /dev/null ~/landnama-backup-key.txt && read -r K && printf '%s\n' "$K" > ~/landnama-backup-key.txt; unset K; clear
+age-keygen -y ~/landnama-backup-key.txt   # must print the public key from the BACKUP_AGE_RECIPIENT variable
 ```
 
-`restore.sql` is **unencrypted user data**. Handle it carefully and `shred -u` it when you're done.
+**Into a new, empty Supabase project** (after a disaster). Decrypt straight into `psql`, so the unencrypted SQL never touches the disk. Use the new project's **Session pooler** connection string for `postgres`:
 
-**Into a new, empty Supabase project** (after a disaster): open `psql -v ON_ERROR_STOP=1` with the new project's `postgres` connection string (Session pooler), then:
-
-```sql
-SET session_replication_role = replica;  -- don't fire triggers (e.g. handle_new_user) during restore
-\i restore.sql
-SET session_replication_role = origin;
+```bash
+age --decrypt -i ~/landnama-backup-key.txt landnama-….sql.age \
+  | { echo "SET session_replication_role = replica;"; cat; echo "SET session_replication_role = origin;"; } \
+  | psql "postgresql://postgres.<new-ref>:<password>@<pooler-host>:5432/postgres" -X -q -v ON_ERROR_STOP=1
 ```
 
-`ON_ERROR_STOP` makes the restore stop at the first error instead of continuing half-done. If it stops, fix the cause, wipe the new project's `public` schema (it's a new, empty project, so nothing is lost), and run it again.
+`session_replication_role = replica` stops triggers (such as `handle_new_user`) from firing during the restore. `ON_ERROR_STOP` stops at the first error instead of leaving a half-done restore. If it stops, fix the cause, wipe the new project's `public` and `private` schemas (it's a new, empty project, so nothing is lost), and run it again.
 
-Afterwards, re-apply the settings that live outside the database: auth providers, email templates, redirect URLs and SMTP.
+Afterwards:
+
+1. Re-apply the settings that live outside the database: auth providers, email templates, redirect URLs, SMTP and the Data API exposed schemas (`public` only).
+2. Turn on automatic RLS for new tables again (the `ensure_rls` event trigger isn't part of the backup).
+3. Recreate the backup user and views (step 2 above) and update the `BACKUP_DATABASE_URL` secret.
+4. Check security: run the Security Advisor, and confirm that a logged-out request to `/rest/v1/profiles` gets a 401.
+5. Point the app's `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` at the new project and redeploy.
+
+Finally, delete the key file: `shred -u ~/landnama-backup-key.txt`.
 
 **Recovering a few rows** (for example, someone's visits were deleted by mistake): restore into a local Postgres instead, find the rows, and copy them back with an `INSERT`. Don't restore a full backup over the live database.

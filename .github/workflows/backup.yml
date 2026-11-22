@@ -61,13 +61,26 @@ jobs:
                   # Login tokens (auth.sessions, auth.refresh_tokens, ...) are deliberately
                   # excluded, and the backup_reader role cannot read them anyway.
                   {
-                      # 1. public schema. Keeps GRANTs (anon/authenticated/service_role) so a
-                      #    restore is exact; the sed makes it restorable into a fresh Supabase
-                      #    project, where `public` already exists and backup_reader doesn't.
-                      "$PG/pg_dump" "$DATABASE_URL" --schema-only --schema=public --no-owner \
+                      # 0. A fresh Supabase project grants anon/authenticated ALL on every new
+                      #    object in public. pg_dump only emits GRANTs (never revokes those
+                      #    defaults) and restores default privileges last, so close them first;
+                      #    the dump's own GRANTs then reproduce production's permissions exactly.
+                      echo '-- Make new objects in public start closed (as in production)'
+                      echo 'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated;'
+                      echo 'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON SEQUENCES FROM anon, authenticated;'
+                      echo 'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON FUNCTIONS FROM anon, authenticated;'
+
+                      # 1. public + private schemas (private holds the RLS helper functions).
+                      #    Keeps GRANTs so a restore is exact. The sed makes it restorable as
+                      #    `postgres` into a fresh Supabase project: `public` already exists,
+                      #    backup_reader doesn't, and supabase_admin's default privileges are
+                      #    already there (and postgres isn't allowed to set them).
+                      "$PG/pg_dump" "$DATABASE_URL" --schema-only --schema=public --schema=private \
+                          --no-owner \
                           | sed -E \
                               -e 's/^CREATE SCHEMA public;$/CREATE SCHEMA IF NOT EXISTS public;/' \
-                              -e '/ TO backup_reader;$/d'
+                              -e '/ TO backup_reader;$/d' \
+                              -e '/^ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin /d'
 
                       # 2. auth.users / auth.identities. Supabase won't let us grant on the auth
                       #    schema, so backup_reader reads them through views in the `backup`
