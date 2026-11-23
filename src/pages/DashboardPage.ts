@@ -11,6 +11,7 @@ import { navbar, initNavHamburger } from '../components/nav'
 import { MapView } from '../components/MapView'
 import { createDropdown } from '../components/Dropdown'
 import { createSail } from '../components/ship'
+import { REGION_ORDER, regionLabel } from '../badges'
 
 export const DashboardPage = {
     render(_params: Record<string, string>): HTMLElement {
@@ -23,6 +24,7 @@ export const DashboardPage = {
 
         el.innerHTML = `
       ${navbar('home', user.id)}
+      <h1 class="sr-only">Heim</h1>
       <div class="dashboard-body">
         <aside class="sidebar">
           <div class="sidebar-header">
@@ -63,18 +65,7 @@ export const DashboardPage = {
         const regionDropdown = createDropdown({
             options: [
                 { label: 'Öll svæði', value: '' },
-                { label: 'Africa', value: 'Africa' },
-                { label: 'Antarctica', value: 'Antarctica' },
-                { label: 'Asia', value: 'Asia' },
-                { label: 'Atlantic Ocean', value: 'Atlantic Ocean' },
-                { label: 'Caribbean', value: 'Caribbean' },
-                { label: 'Central America', value: 'Central America' },
-                { label: 'Europe & Mediterranean', value: 'Europe & Mediterranean' },
-                { label: 'Indian Ocean', value: 'Indian Ocean' },
-                { label: 'Middle East', value: 'Middle East' },
-                { label: 'North America', value: 'North America' },
-                { label: 'Pacific Ocean', value: 'Pacific Ocean' },
-                { label: 'South America', value: 'South America' },
+                ...REGION_ORDER.map((r) => ({ label: regionLabel(r), value: r })),
             ],
             onChange: (value) => {
                 sail.pin(value || null)
@@ -125,7 +116,7 @@ export const DashboardPage = {
             byRegion.forEach((items, region) => {
                 const group = document.createElement('div')
                 group.className = 'list-group'
-                group.innerHTML = `<div class="list-region">${region}</div>`
+                group.innerHTML = `<div class="list-region">${regionLabel(region)}</div>`
                 items.forEach((t) => group.appendChild(makeRow(t)))
                 listEl.appendChild(group)
             })
@@ -151,7 +142,7 @@ export const DashboardPage = {
                     byRegionRetired.forEach((items, region) => {
                         const group = document.createElement('div')
                         group.className = 'list-group'
-                        group.innerHTML = `<div class="list-region">${region}</div>`
+                        group.innerHTML = `<div class="list-region">${regionLabel(region)}</div>`
                         items.forEach((t) => group.appendChild(makeRow(t)))
                         listEl.appendChild(group)
                     })
@@ -279,10 +270,10 @@ export const DashboardPage = {
             rerender()
         })
 
-        // The map is hidden on phones, so don't download it there
-        const phone = window.matchMedia('(max-width: 540px)')
+        // The map is hidden on narrow screens, so don't download it there
+        const narrow = window.matchMedia('(max-width: 900px)')
         const loadMap = () => {
-            if (mapView || phone.matches) return
+            if (mapView || narrow.matches) return
             mapView = new MapView({
                 container: mapContainer,
                 visited,
@@ -293,7 +284,7 @@ export const DashboardPage = {
             mapView.load()
         }
         loadMap()
-        phone.addEventListener('change', loadMap)
+        narrow.addEventListener('change', loadMap)
 
         const toTop = el.querySelector('#to-top') as HTMLButtonElement
         const onScroll = () => {

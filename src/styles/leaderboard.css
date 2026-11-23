@@ -1,12 +1,17 @@
+#list:has(.lb-card) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: 1rem;
+}
+
 .lb-card {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 0.75rem;
-    padding: 1rem 1.25rem;
+    padding: 1.1rem 1.25rem;
     background: var(--side);
     border: 1px solid transparent;
     border-radius: var(--r-control);
-    margin-bottom: 0.5rem;
     text-decoration: none;
     color: var(--text);
     transition: border-color 0.15s;
@@ -16,15 +21,61 @@
     border-color: var(--control);
 }
 
-.lb-name {
-    font-weight: 600;
-    font-size: 1rem;
+.lb-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
 }
+
+.lb-name {
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+
+.lb-members {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
 .lb-desc {
     color: var(--muted);
     font-size: 0.9rem;
-    flex: 1;
 }
+
+.lb-standings {
+    list-style: none;
+}
+
+.lb-standings li {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-top: 1px solid var(--rule);
+}
+
+.lb-standings li.me {
+    font-weight: 600;
+}
+
+.lb-rank {
+    width: 1.75rem;
+    color: var(--muted);
+}
+
+.lb-who {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lb-count {
+    color: var(--accent);
+    font-weight: 700;
+}
+
 .lb-badge {
     font-size: 0.8rem;
     font-weight: 600;
@@ -63,7 +114,7 @@
     background: var(--side);
 }
 .rankings-table tr.current-user td:first-child {
-    box-shadow: inset 3px 0 0 var(--red);
+    box-shadow: inset 3px 0 0 var(--accent);
 }
 .rank-cell {
     font-weight: 800;

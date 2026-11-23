@@ -9,6 +9,10 @@
     padding: 2rem;
 }
 
+.auth-page .logo {
+    width: 4rem;
+}
+
 .auth-page h1 {
     font-size: 2rem;
     font-weight: 800;
@@ -25,4 +29,56 @@
 
 .auth-page form button[type='submit'] {
     align-self: stretch;
+}
+
+.auth-intro,
+.auth-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+}
+
+.auth-intro {
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.auth-intro .ship-svg {
+    width: 12rem;
+    margin-bottom: 1.5rem;
+}
+
+.auth-intro p {
+    color: var(--muted);
+}
+
+@media (min-width: 860px) {
+    .auth-page:has(.auth-intro) {
+        flex-direction: row;
+        gap: 7rem;
+    }
+
+    .auth-intro {
+        align-items: flex-start;
+        max-width: 24rem;
+        margin: 0;
+        text-align: left;
+    }
+
+    .auth-intro .ship-svg {
+        width: 100%;
+        margin-bottom: 2.5rem;
+    }
+
+    .auth-intro h1 {
+        font-size: 2.75rem;
+    }
+
+    .auth-intro p {
+        font-size: 1.15rem;
+    }
 }

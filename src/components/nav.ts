@@ -1,4 +1,5 @@
 import { initThemeToggle } from '../theme'
+import { LOGO } from './logo'
 
 type NavPage = 'home' | 'leaderboards' | 'about' | 'profile'
 
@@ -32,7 +33,7 @@ export function navbar(active: NavPage | null, userId?: string): string {
 
     return `
     <nav class="navbar">
-      <span class="nav-brand"><a href="/home">Landnáma</a></span>
+      <span class="nav-brand"><a href="/home">${LOGO}Landnáma</a></span>
       <div class="nav-links">${links}</div>
       <div class="nav-actions">
         <button type="button" class="icon-btn theme-toggle nav-header-theme" aria-label="Skipta um útlit">${MOON}${SUN}</button>
@@ -41,8 +42,8 @@ export function navbar(active: NavPage | null, userId?: string): string {
       <div class="nav-mobile-menu hidden" id="nav-mobile-menu">
         ${links}
         <button type="button" class="theme-toggle nav-menu-theme">
-          ${MOON}<span class="when-light">Dökkt útlit</span>
-          ${SUN}<span class="when-dark">Ljóst útlit</span>
+          <span class="when-light">Dökkt útlit</span>${MOON}
+          <span class="when-dark">Ljóst útlit</span>${SUN}
         </button>
       </div>
     </nav>

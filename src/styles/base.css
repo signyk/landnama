@@ -8,9 +8,9 @@
     --field: #f3f4f1;
     --text: #1d2420;
     --muted: #4f5852;
-    --red: #8b2232;
-    --red-hover: #6f1a28;
-    --on-red: #ffffff;
+    --accent: #2e4d7a;
+    --accent-hover: color-mix(in srgb, var(--accent), black 18%);
+    --on-accent: #ffffff;
     --cloth: #f6f7f3;
     --hull: #3a3f3a;
     --strake: #596058;
@@ -42,8 +42,9 @@
     --field: #1f2321;
     --text: #e6e9e2;
     --muted: #a3aaa4;
-    --red: #b23a4c;
-    --red-hover: #c4505f;
+    --accent: #7096cc;
+    --accent-hover: color-mix(in srgb, var(--accent), white 18%);
+    --on-accent: #131514;
     --cloth: #2f3431;
     --hull: #5a524a;
     --strake: #7a7066;
@@ -113,13 +114,13 @@ a:hover {
 }
 
 :focus-visible {
-    outline: 2px solid var(--red);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
 }
 
 ::selection {
-    background: var(--red);
-    color: var(--on-red);
+    background: var(--accent);
+    color: var(--on-accent);
 }
 
 .error {
@@ -136,8 +137,9 @@ a:hover {
     color: var(--muted);
     font-size: 1rem;
 }
-.hidden {
-    display: none;
+.hidden,
+[hidden] {
+    display: none !important;
 }
 
 /* General page layout */
@@ -160,6 +162,12 @@ a:hover {
 .page-header h1 {
     font-size: 1.75rem;
     font-weight: 800;
+}
+
+@media (max-width: 540px) {
+    .page-header h1 {
+        font-size: 1.4rem;
+    }
 }
 
 .back-link {
@@ -221,13 +229,13 @@ form button[type='submit']:not(.btn) {
 
 .btn-primary,
 form button[type='submit']:not(.btn) {
-    background: var(--red);
-    color: var(--on-red);
+    background: var(--accent);
+    color: var(--on-accent);
     border: 1px solid transparent;
 }
 .btn-primary:hover,
 form button[type='submit']:not(.btn):hover {
-    background: var(--red-hover);
+    background: var(--accent-hover);
     text-decoration: none;
 }
 
@@ -339,4 +347,19 @@ form button[type='submit']:not(.btn) {
 :root[data-theme='dark'] .when-light,
 :root:not([data-theme='dark']) .when-dark {
     display: none;
+}
+
+.logo {
+    display: block;
+    width: 2rem;
+    height: auto;
+}
+.logo-ink {
+    fill: var(--text);
+}
+.logo-sail {
+    fill: var(--accent);
+}
+.logo-cloth {
+    fill: color-mix(in srgb, var(--accent) 30%, var(--cloth));
 }

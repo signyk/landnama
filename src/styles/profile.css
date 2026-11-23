@@ -5,13 +5,69 @@
     font-variant-numeric: tabular-nums;
 }
 
-.profile-map {
+.profile-views {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.view-tabs {
+    display: flex;
+    gap: 1.5rem;
+    border-bottom: 1px solid var(--rule);
+}
+
+.view-tabs button {
+    margin-bottom: -1px;
+    padding: 0.5rem 0;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: none;
+    color: var(--muted);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.view-tabs button:hover {
+    color: var(--text);
+    border-bottom-color: var(--control);
+}
+
+.view-tabs button[aria-pressed='true'] {
+    color: var(--text);
+    font-weight: 600;
+    border-bottom-color: var(--accent);
+}
+
+.profile-view {
     flex: none;
     aspect-ratio: 2 / 1;
     max-height: 560px;
     background: var(--side);
     border-radius: var(--r-control);
     overflow: hidden;
+}
+
+.profile-ship {
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+}
+
+.profile-ship .ship-block {
+    width: min(22rem, 100%);
+    padding: 0;
+}
+
+.profile-ship .ship {
+    width: 100%;
+}
+
+@media (max-width: 700px) {
+    .profile-ship {
+        aspect-ratio: auto;
+        max-height: none;
+    }
 }
 
 .profile-territory-list {
@@ -31,171 +87,85 @@
     color: var(--text);
 }
 
-/* ── Badge icon grid ──────────────────────────────────────────────────────── */
+.badge-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 0 2.5rem;
+    list-style: none;
+}
 
-.badge-grid {
-    display: flex;
-    flex-wrap: wrap;
+.badge-row {
+    --tier: var(--control);
+    border-bottom: 1px solid var(--rule);
+}
+
+.badge-row summary {
+    display: grid;
+    grid-template-columns: 1.25rem 1fr auto;
+    align-items: center;
     gap: 0.75rem;
-}
-
-.badge-icon-btn {
-    position: relative;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    border: 2px solid var(--control);
-    background: var(--side);
-    color: var(--control);
+    padding: 0.5rem 0;
+    font-variant-numeric: tabular-nums;
+    list-style: none;
     cursor: pointer;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition:
-        transform 0.1s,
-        box-shadow 0.1s;
 }
 
-.badge-icon-btn:hover {
-    transform: scale(1.08);
-    box-shadow: 0 0 0 3px var(--active);
+.badge-row summary::-webkit-details-marker {
+    display: none;
 }
 
-.badge-icon-btn svg {
-    width: 100%;
-    height: 100%;
+.badge-row summary:hover .badge-name {
+    text-decoration: underline;
+    text-decoration-color: var(--control);
+    text-underline-offset: 0.2em;
 }
 
-/* Tier colors */
-.badge-level-bronze {
-    border-color: var(--bronze);
-    color: var(--bronze);
-    background: color-mix(in srgb, var(--bronze) 10%, transparent);
-}
-.badge-level-silver {
-    border-color: var(--silver);
-    color: var(--silver);
-    background: color-mix(in srgb, var(--silver) 10%, transparent);
-}
-.badge-level-gold {
-    border-color: var(--gold);
-    color: var(--gold);
-    background: color-mix(in srgb, var(--gold) 10%, transparent);
-}
-.badge-level-platinum {
-    border-color: var(--platinum);
-    color: var(--platinum);
-    background: color-mix(in srgb, var(--platinum) 10%, transparent);
-}
-.badge-level-diamond {
-    border-color: var(--diamond);
-    color: var(--diamond);
-    background: color-mix(in srgb, var(--diamond) 10%, transparent);
-}
-.badge-level-unearned {
-    border-style: dashed;
-    border-color: var(--control);
-    color: var(--control);
-}
-
-/* ── Popover ──────────────────────────────────────────────────────────────── */
-
-.badge-popover {
-    position: fixed;
-    width: 220px;
-    background: var(--field);
-    border: 1px solid var(--rule);
-    border-radius: var(--r-control);
-    padding: 0.75rem;
-    z-index: 20;
-    box-shadow: var(--shadow);
-    pointer-events: none;
-    text-align: left;
-}
-
-.badge-popover-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-bottom: 0.4rem;
-}
-
-.badge-popover-label {
+.badge-more {
+    padding: 0 0 0.6rem 2rem;
+    color: var(--muted);
     font-size: 0.9rem;
-    font-weight: 600;
+}
+
+.badge-more b {
     color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.badge-popover-tier {
-    font-size: 0.75rem;
     font-weight: 600;
-    padding: 0.15rem 0.45rem;
-    border-radius: 999px;
-    flex-shrink: 0;
 }
 
-.badge-tier-unearned {
-    background: var(--active);
+.badge-row.bronze {
+    --tier: var(--bronze);
+}
+.badge-row.silver {
+    --tier: var(--silver);
+}
+.badge-row.gold {
+    --tier: var(--gold);
+}
+.badge-row.platinum {
+    --tier: var(--platinum);
+}
+.badge-row.diamond {
+    --tier: var(--diamond);
+}
+
+.badge-row svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--tier);
+}
+
+.badge-name {
+    font-weight: 600;
+}
+
+.badge-row.unearned .badge-name {
     color: var(--muted);
-}
-.badge-tier-bronze {
-    background: color-mix(in srgb, var(--bronze) 18%, transparent);
-    color: var(--bronze);
-}
-.badge-tier-silver {
-    background: color-mix(in srgb, var(--silver) 18%, transparent);
-    color: var(--silver);
-}
-.badge-tier-gold {
-    background: color-mix(in srgb, var(--gold) 18%, transparent);
-    color: var(--gold);
-}
-.badge-tier-platinum {
-    background: color-mix(in srgb, var(--platinum) 18%, transparent);
-    color: var(--platinum);
-}
-.badge-tier-diamond {
-    background: color-mix(in srgb, var(--diamond) 18%, transparent);
-    color: var(--diamond);
+    font-weight: 500;
 }
 
-.badge-popover-desc {
-    font-size: 0.85rem;
+.badge-count {
+    text-align: right;
     color: var(--muted);
-    margin: 0 0 0.6rem;
-    line-height: 1.4;
-}
-
-.badge-popover-progress-wrap {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.badge-popover-progress-track {
-    flex: 1;
-    height: 6px;
-    background: var(--land);
-    border-radius: var(--r-bar);
-    overflow: hidden;
-}
-
-.badge-popover-progress-fill {
-    height: 100%;
-    border-radius: var(--r-bar);
-    background: currentColor;
-    transition: width 0.3s;
-}
-
-.badge-popover-progress-detail {
-    font-size: 0.8rem;
-    color: var(--muted);
-    white-space: nowrap;
+    font-size: 0.9rem;
 }
 
 @media (max-width: 1000px) {
@@ -273,5 +243,18 @@
 @media (max-width: 700px) {
     .settings-row {
         grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Phones: name and count on one line, the buttons on the next */
+@media (max-width: 540px) {
+    #profile-header::after {
+        content: '';
+        flex-basis: 100%;
+        order: 1;
+    }
+
+    #profile-header .btn-ghost {
+        order: 2;
     }
 }

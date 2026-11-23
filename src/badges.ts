@@ -17,7 +17,6 @@ export type BadgeCategory = {
     progress: number
     current: number
     target: number
-    progressDetail: string
     description: string
 }
 
@@ -154,25 +153,36 @@ function computeCategory(
     const earnedIdx = earned ? LEVEL_ORDER.indexOf(earned) : -1
     const nextTier = tiers.find((t) => LEVEL_ORDER.indexOf(t.level) > earnedIdx) ?? null
 
-    const target = (nextTier ?? tiers[tiers.length - 1]).threshold
-    const current = Math.min(value, target)
-    const earnedTierDef = earned ? tiers.find((t) => t.level === earned) : null
-    const description = nextTier
-        ? (earnedTierDef ?? nextTier).description
-        : tiers[tiers.length - 1].description
+    const goal = nextTier ?? tiers[tiers.length - 1]
+    const current = Math.min(value, goal.threshold)
 
     return {
         id,
         label,
         icon,
         earned,
-        progress: current / target,
+        progress: current / goal.threshold,
         current,
-        target,
-        progressDetail: `${current} / ${target}`,
-        description,
+        target: goal.threshold,
+        description: goal.description,
     }
 }
+
+// West to east, so the sail reads like the map
+export const REGION_ORDER = [
+    'Pacific Ocean',
+    'North America',
+    'Central America',
+    'South America',
+    'Caribbean',
+    'Atlantic Ocean',
+    'Europe & Mediterranean',
+    'Africa',
+    'Middle East',
+    'Indian Ocean',
+    'Asia',
+    'Antarctica',
+]
 
 // `labelDative` is the dative/locative form used in "Heimsótt X svæði í <labelDative>"
 export const REGION_DEFS: Array<{
@@ -380,3 +390,6 @@ export function computeBadgeCategories(
 
     return categories
 }
+
+export const regionLabel = (region: string) =>
+    REGION_DEFS.find((d) => d.region === region)?.label ?? region

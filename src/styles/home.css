@@ -28,7 +28,7 @@
     z-index: 2;
     background: var(--side);
     border-bottom: 1px solid var(--rule);
-    padding: calc(0.25rem + 1px) 0.75rem 0.75rem;
+    padding: calc(0.25rem + 1px) 1rem 0.75rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -139,7 +139,7 @@
 }
 
 .dropdown-item.active {
-    color: var(--red);
+    color: var(--accent);
     font-weight: 600;
 }
 
@@ -152,7 +152,7 @@
 }
 
 .list-retired-header {
-    padding: 0.6rem 0.75rem 0.25rem;
+    padding: 0.6rem 1rem 0.25rem;
     font-size: 0.95rem;
     font-weight: 600;
     color: var(--muted);
@@ -161,7 +161,7 @@
 }
 
 .list-region {
-    padding: 0.75rem 0.75rem 0.35rem;
+    padding: 0.75rem 1rem 0.35rem;
     font-size: 0.95rem;
     font-weight: 700;
     color: var(--text);
@@ -171,7 +171,7 @@
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    padding: 0.45rem 0.75rem;
+    padding: 0.45rem 1rem;
     font-size: 1.05rem;
     cursor: pointer;
     color: var(--muted);
@@ -200,8 +200,8 @@
 
 .list-row.visited::before,
 .picker-option.visited .picker-check {
-    border-color: var(--red);
-    background: radial-gradient(circle, var(--side) 0 2.5px, var(--red) 3px);
+    border-color: var(--accent);
+    background: radial-gradient(circle, var(--side) 0 2.5px, var(--accent) 3px);
 }
 
 /* Map column */
@@ -259,12 +259,12 @@
 
 .map-container path.visited,
 .map-container circle.visited {
-    fill: var(--red);
+    fill: var(--accent);
 }
 
 .map-container path.visited:hover,
 .map-container circle.visited:hover {
-    fill: var(--red-hover);
+    fill: var(--accent-hover);
 }
 
 /* Tooltip */
@@ -280,10 +280,6 @@
     white-space: nowrap;
 }
 
-.map-tooltip.hidden {
-    display: none;
-}
-
 /* Error toast */
 .toast {
     position: fixed;
@@ -293,16 +289,12 @@
     max-width: calc(100vw - 2rem);
     background: var(--text);
     color: var(--ground);
-    border-left: 4px solid var(--red);
+    border-left: 4px solid var(--accent);
     border-radius: var(--r-control);
     padding: 0.625rem 1rem;
     font-size: 0.9375rem;
     z-index: 300;
     box-shadow: var(--shadow);
-}
-
-.toast.hidden {
-    display: none;
 }
 
 .toast-retry {
@@ -329,10 +321,6 @@
     box-shadow: var(--shadow);
 }
 
-.picker.hidden {
-    display: none;
-}
-
 .picker-title {
     padding: 0.375rem 0.875rem 0.5rem;
     font-size: 0.9rem;
@@ -357,145 +345,37 @@
     background: var(--active);
 }
 
-/* Ship */
 .ship-block {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    padding: 1.25rem 0.75rem 0.25rem;
+    padding: 1.25rem 1rem 0.25rem;
 }
 
 .ship {
     position: relative;
     width: 252px;
-    height: 236px;
     margin: 0 auto;
 }
 
-.ship-mast {
-    position: absolute;
-    left: 125px;
-    top: 0;
-    width: 3px;
-    height: 200px;
-    background: var(--text);
-}
-
-.ship-yard {
-    position: absolute;
-    left: 30px;
-    right: 30px;
-    top: 10px;
-    height: 5px;
-    border-radius: 3px;
-    background: var(--text);
-}
-
-.ship-sail {
-    position: absolute;
-    left: 36px;
-    right: 36px;
-    top: 15px;
-    height: 142px;
-    display: flex;
-    gap: 2px;
-    clip-path: polygon(0 0, 100% 0, 104% 88%, 50% 100%, -4% 88%);
-}
-
-.sail-stripe {
-    flex: 1;
-    min-width: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: var(--cloth);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    transition: opacity 0.15s;
-}
-
-.sail-stripe.dim {
-    opacity: 0.45;
-}
-
-.sail-stripe:focus-visible {
-    outline: none;
-    box-shadow: inset 0 0 0 2px var(--text);
-}
-
-.sail-stripe span {
+.ship-svg {
     display: block;
     width: 100%;
-    background: var(--red);
-    transition: height 0.4s ease;
+    height: auto;
 }
 
-.ship-hull {
+.ship-stripes button,
+.ship-shields button {
     position: absolute;
-    left: 0;
-    top: 143px;
-    width: 252px;
-    height: 93px;
-    overflow: visible;
-    pointer-events: none;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
 }
 
-.ship-hull .hull {
-    fill: var(--hull);
-}
-.ship-hull .strake {
-    fill: none;
-    stroke: var(--strake);
-    stroke-width: 1.5;
-}
-.ship-hull .gunwale {
-    fill: none;
-    stroke: var(--text);
-    stroke-width: 2.5;
-}
-.badge-shield {
-    pointer-events: all;
-    outline: none;
-    color: var(--hull);
-    transform-box: fill-box;
-    transform-origin: center;
-    transition: transform 0.15s;
-}
-.badge-shield:hover,
-.badge-shield:focus-visible {
-    transform: scale(1.15);
-}
-.badge-shield circle {
-    stroke: var(--hull);
-    stroke-width: 1.5;
-}
-.badge-shield.bronze circle {
-    fill: var(--bronze);
-}
-.badge-shield.silver circle {
-    fill: var(--silver);
-}
-.badge-shield.gold circle {
-    fill: var(--gold);
-}
-.badge-shield.platinum circle {
-    fill: var(--platinum);
-}
-.badge-shield.diamond circle {
-    fill: var(--diamond);
-}
-.badge-shield.unearned {
-    color: var(--strake);
-}
-.badge-shield.unearned circle {
-    fill: var(--hull);
-}
-
-.ship-hull .sea {
-    fill: none;
-    stroke: var(--sea);
-    stroke-width: 2;
+.ship-shields button {
+    border-radius: 50%;
+    cursor: default;
 }
 
 .tally {
@@ -516,7 +396,7 @@
     line-height: 1;
     font-weight: 800;
     letter-spacing: -0.03em;
-    color: var(--red);
+    color: var(--accent);
 }
 
 .tally-total {
@@ -546,7 +426,7 @@
 .tally-bar span {
     display: block;
     height: 100%;
-    background: var(--red);
+    background: var(--accent);
     border-radius: var(--r-bar);
     transition: width 0.3s ease;
 }
@@ -587,8 +467,8 @@
     }
 }
 
-/* Phones: no map, the ship and list scroll as one page */
-@media (max-width: 540px) {
+/* Phones and tablets: no map, the ship and list scroll as one page */
+@media (max-width: 900px) {
     .dashboard {
         height: auto;
         min-height: 100dvh;
@@ -604,15 +484,13 @@
         overflow: visible;
     }
 
-    .sidebar-header {
-        padding: calc(0.75rem + 1px) 1rem 0.75rem;
+    .sidebar > * {
+        max-width: 36rem;
+        margin-inline: auto;
     }
 
-    .list-region,
-    .list-row,
-    .list-retired-header {
-        padding-left: 1rem;
-        padding-right: 1rem;
+    .sidebar-header {
+        padding: calc(0.75rem + 1px) 1rem 0.75rem;
     }
 
     .map-column {
@@ -620,6 +498,6 @@
     }
 
     .ship-block {
-        padding: 1rem 1rem 0.25rem;
+        padding-top: 1rem;
     }
 }
