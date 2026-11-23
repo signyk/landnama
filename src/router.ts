@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { authStore } from './auth/authStore'
+import { logError } from './errorLog'
 
 type PageModule = {
     render: (params: Record<string, string>) => HTMLElement
@@ -90,8 +91,10 @@ const routes: Route[] = [
 
 const app = document.getElementById('app')!
 let currentDestroy: (() => void) | undefined
+let navigationId = 0
 
 async function navigate(path: string) {
+    const id = ++navigationId
     // Strip query string for route matching, keep it for params
     const [pathname, search] = path.split('?')
     const query = Object.fromEntries(new URLSearchParams(search ?? ''))
@@ -123,10 +126,25 @@ async function navigate(path: string) {
         params[key] = decodeURIComponent(execResult[i + 1] ?? '')
     })
 
+    let page: PageModule
+    try {
+        page = await match.loader()
+    } catch (err) {
+        // A tab opened before a deploy asks for chunk names that no longer exist; a full load fetches the new ones
+        if (sessionStorage.getItem('reloadedFor') !== path) {
+            sessionStorage.setItem('reloadedFor', path)
+            location.assign(path)
+            return
+        }
+        logError('load page', err)
+        return
+    }
+    sessionStorage.removeItem('reloadedFor')
+    // A newer navigation started while this page was loading
+    if (id !== navigationId) return
+
     currentDestroy?.()
     currentDestroy = undefined
-
-    const page = await match.loader()
     const el = page.render(params)
     app.innerHTML = ''
     app.appendChild(el)
@@ -134,6 +152,7 @@ async function navigate(path: string) {
 }
 
 function render404() {
+    navigationId++
     currentDestroy?.()
     currentDestroy = undefined
     app.innerHTML =
