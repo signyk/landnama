@@ -19,7 +19,7 @@ export const ProfilePage = {
 
         el.innerHTML = `
       ${navbar(isOwnProfile ? 'profile' : null, currentUser.id)}
-      <div class="page-content">
+      <div class="page-content page-wide">
         <div id="profile-header" class="page-header">
           ${!isOwnProfile ? '<button id="back-btn" class="back-link">← Til baka</button>' : ''}
           <h1 id="profile-name">Loading…</h1>
@@ -38,46 +38,67 @@ export const ProfilePage = {
         ${
             isOwnProfile
                 ? `
-        <div class="account-section">
+        <section class="account-section">
           <h2 class="section-title">Aðgangur</h2>
-          <form id="name-form" class="account-form">
-            <h3>Nafn</h3>
-            <input type="text" id="display-name-input" placeholder="Nafn (til birtingar)" maxlength="60" autocomplete="name" required />
-            <button type="submit" class="btn">Breyta nafni</button>
-            <p id="name-error" class="error"></p>
-            <p id="name-success" class="success"></p>
+          <form id="name-form" class="settings-row">
+            <div class="settings-label">
+              <h3>Nafn</h3>
+              <p class="muted">Birtist á stigatöflum.</p>
+            </div>
+            <div class="settings-fields">
+              <input type="text" id="display-name-input" aria-label="Nafn" placeholder="Nafn (til birtingar)" maxlength="60" autocomplete="name" required />
+              <button type="submit" class="btn">Breyta nafni</button>
+              <p id="name-error" class="error"></p>
+              <p id="name-success" class="success"></p>
+            </div>
           </form>
-          <form id="email-form" class="account-form">
-            <h3>Netfang</h3>
-            <p class="muted">Núverandi: <span id="current-email"></span></p>
-            <p id="pending-email" class="muted hidden"></p>
-            <input type="email" id="new-email" placeholder="Nýtt netfang" autocomplete="email" required />
-            <button type="submit" class="btn">Breyta netfangi</button>
-            <p id="email-error" class="error"></p>
-            <p id="email-success" class="success"></p>
+          <form id="email-form" class="settings-row">
+            <div class="settings-label">
+              <h3>Netfang</h3>
+              <p class="muted">Núverandi: <span id="current-email"></span></p>
+              <p id="pending-email" class="muted hidden"></p>
+            </div>
+            <div class="settings-fields">
+              <input type="email" id="new-email" aria-label="Nýtt netfang" placeholder="Nýtt netfang" autocomplete="email" required />
+              <button type="submit" class="btn">Breyta netfangi</button>
+              <p id="email-error" class="error"></p>
+              <p id="email-success" class="success"></p>
+            </div>
           </form>
-          <form id="password-form" class="account-form">
-            <h3>Lykilorð</h3>
-            <input type="password" id="current-password" placeholder="Núverandi lykilorð" autocomplete="current-password" required />
-            <input type="password" id="new-password" placeholder="Nýtt lykilorð (lágmark 6 stafir)" autocomplete="new-password" required minlength="6" />
-            <input type="password" id="confirm-password" placeholder="Staðfesta nýtt lykilorð" autocomplete="new-password" required minlength="6" />
-            <button type="submit" class="btn">Breyta lykilorði</button>
-            <p id="password-error" class="error"></p>
-            <p id="password-success" class="success"></p>
+          <form id="password-form" class="settings-row">
+            <div class="settings-label">
+              <h3>Lykilorð</h3>
+            </div>
+            <div class="settings-fields">
+              <input type="password" id="current-password" aria-label="Núverandi lykilorð" placeholder="Núverandi lykilorð" autocomplete="current-password" required />
+              <input type="password" id="new-password" aria-label="Nýtt lykilorð" placeholder="Nýtt lykilorð (lágmark 6 stafir)" autocomplete="new-password" required minlength="6" />
+              <input type="password" id="confirm-password" aria-label="Staðfesta nýtt lykilorð" placeholder="Staðfesta nýtt lykilorð" autocomplete="new-password" required minlength="6" />
+              <button type="submit" class="btn">Breyta lykilorði</button>
+              <p id="password-error" class="error"></p>
+              <p id="password-success" class="success"></p>
+            </div>
           </form>
-          <div class="account-form">
-            <h3>Gögnin þín</h3>
-            <p class="muted">Sæktu lista yfir löndin og svæðin sem þú hefur heimsótt sem CSV-skrá.</p>
-            <button id="export-btn" class="btn">Sækja CSV</button>
-            <p id="export-error" class="error"></p>
+          <div class="settings-row">
+            <div class="settings-label">
+              <h3>Gögnin þín</h3>
+              <p class="muted">Sæktu lista yfir löndin og svæðin sem þú hefur heimsótt sem CSV-skrá.</p>
+            </div>
+            <div class="settings-fields">
+              <button id="export-btn" class="btn">Sækja CSV</button>
+              <p id="export-error" class="error"></p>
+            </div>
           </div>
-        </div>
-        <div class="danger-section" style="margin-top:2rem">
-          <h3 style="margin-bottom:0.5rem">Eyða aðgangi</h3>
-          <p class="muted" style="margin-bottom:0.75rem">Þetta eyðir öllum ferðagögnum þínum og er óafturkræft. Stigatöflur sem þú átt færast til annars meðlims.</p>
-          <button id="delete-account-btn" class="btn-danger">Eyða aðgangi</button>
-          <span id="delete-error" class="error"></span>
-        </div>
+          <div class="settings-row">
+            <div class="settings-label">
+              <h3>Eyða aðgangi</h3>
+              <p class="muted">Þetta eyðir öllum ferðagögnum þínum og er óafturkræft. Stigatöflur sem þú átt færast til annars meðlims.</p>
+            </div>
+            <div class="settings-fields">
+              <button id="delete-account-btn" class="btn-danger">Eyða aðgangi</button>
+              <span id="delete-error" class="error"></span>
+            </div>
+          </div>
+        </section>
         `
                 : ''
         }

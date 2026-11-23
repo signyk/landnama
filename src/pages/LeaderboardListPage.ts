@@ -14,7 +14,7 @@ export const LeaderboardListPage = {
       <div class="page-content">
         <div class="page-header">
           <h1>Stigatöflur</h1>
-          <a href="/leaderboards/new" class="btn">+ Ný</a>
+          <a href="/leaderboards/new" class="btn-primary">+ Ný</a>
         </div>
         <div id="list">Hleður…</div>
       </div>
