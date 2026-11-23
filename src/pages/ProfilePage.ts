@@ -1,6 +1,8 @@
 import { supabase } from '../supabase'
 import { errorMessage } from '../errorMessages'
 import { downloadVisitsCsv } from '../exportVisits'
+import { prepareMapImage, shareMapImage } from '../shareImage'
+import { logError } from '../errorLog'
 import { authStore } from '../auth/authStore'
 import { territories, allTerritories } from '../data/territories'
 import { navbar, initNavHamburger } from '../components/nav'
@@ -22,6 +24,7 @@ export const ProfilePage = {
           ${!isOwnProfile ? '<button id="back-btn" class="back-link">← Til baka</button>' : ''}
           <h1 id="profile-name">Loading…</h1>
           <span id="profile-count" class="count-badge"></span>
+          ${isOwnProfile ? '<button id="share-btn" class="btn-ghost" disabled>Deila korti</button>' : ''}
           ${isOwnProfile ? '<button id="signout-btn" class="btn-ghost btn-signout">Skrá út</button>' : ''}
         </div>
         <div id="map-container" class="map-container profile-map">
@@ -215,6 +218,21 @@ export const ProfilePage = {
             el.querySelector('#back-btn')!.addEventListener('click', () => history.back())
         }
 
+        if (isOwnProfile) {
+            const shareBtn = el.querySelector('#share-btn') as HTMLButtonElement
+            shareBtn.addEventListener('click', async () => {
+                shareBtn.disabled = true
+                try {
+                    await shareMapImage(visited)
+                } catch (err) {
+                    logError('share map image', err)
+                    alert('Tókst ekki að búa til mynd. Reyndu aftur.')
+                } finally {
+                    shareBtn.disabled = false
+                }
+            })
+        }
+
         // Sign out
         if (isOwnProfile) {
             el.querySelector('#signout-btn')!.addEventListener('click', async () => {
@@ -377,6 +395,11 @@ export const ProfilePage = {
             if (nameInput) nameInput.value = profile?.display_name ?? ''
             if (visits) visits.forEach((r) => visited.add(r.country_code))
             countEl.textContent = `${visited.size} / ${territories.length}`
+            if (isOwnProfile) {
+                el.querySelector('#share-btn')!.removeAttribute('disabled')
+                // Errors surface when the button is tapped
+                prepareMapImage(visited).catch(() => {})
+            }
             highlightMap()
             renderBadges()
             renderList()
