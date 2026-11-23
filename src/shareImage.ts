@@ -13,25 +13,25 @@ const H = 1920
 const PAD = 80
 const FONT = "'Schibsted Grotesk Variable', system-ui, sans-serif"
 
-// The dark theme's colours
-const BG = '#131514'
-const TEXT = '#e6e9e2'
-const MUTED = '#a3aaa4'
-const ACCENT = '#7096cc'
-const LAND = '#2b302d'
-const CLOTH = '#2f3431'
+// The light theme's colours
+const BG = '#eceee9'
+const TEXT = '#1d2420'
+const MUTED = '#4f5852'
+const ACCENT = '#2e4d7a'
+const ON_ACCENT = '#ffffff'
+const LAND = '#d5d9d2'
 const SHIP = {
     ink: TEXT,
     accent: ACCENT,
-    cloth: CLOTH,
-    hull: '#5a524a',
-    strake: '#7a7066',
-    sea: '#3d4a44',
-    bronze: '#cd7f32',
-    silver: '#a8a9ad',
-    gold: '#e6c229',
-    platinum: '#c9d6df',
-    diamond: '#a5f3fc',
+    cloth: '#f6f7f3',
+    hull: '#3a3f3a',
+    strake: '#596058',
+    sea: '#9aa59c',
+    bronze: '#9a5a24',
+    silver: '#6e7277',
+    gold: '#9a7a06',
+    platinum: '#4e6878',
+    diamond: '#1b7f8c',
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -78,7 +78,7 @@ async function mapImage(visited: Set<string>) {
 
 const logoImage = () =>
     svgImage(LOGO, 320, 260, (svg) => {
-        const fills = { 'logo-ink': TEXT, 'logo-sail': ACCENT, 'logo-cloth': TEXT }
+        const fills = { 'logo-ink': TEXT, 'logo-sail': ACCENT, 'logo-cloth': '#bac4cf' }
         for (const [cls, fill] of Object.entries(fills)) {
             svg.querySelectorAll(`.${cls}`).forEach((el) => el.setAttribute('fill', fill))
         }
@@ -114,7 +114,7 @@ function drawRegionBars(ctx: CanvasRenderingContext2D, visited: Set<string>, top
 
             const barX = 460
             const barW = W - PAD - 130 - barX
-            ctx.fillStyle = CLOTH
+            ctx.fillStyle = LAND
             ctx.fillRect(barX, y + 10, barW, 14)
             ctx.fillStyle = ACCENT
             ctx.fillRect(barX, y + 10, (barW * r.got) / r.total, 14)
@@ -125,7 +125,7 @@ const SHIP_X = (W - 920) / 2
 const SHIP_Y = 560
 const SHIP_SCALE = 920 / 252
 
-// Text over a stripe's fill is clipped to it and drawn in the background colour
+// Text over a stripe's fill is clipped to it and drawn in white
 function drawSailLabels(ctx: CanvasRenderingContext2D, v: Voyage) {
     ctx.save()
     ctx.translate(SHIP_X, SHIP_Y)
@@ -133,7 +133,7 @@ function drawSailLabels(ctx: CanvasRenderingContext2D, v: Voyage) {
     for (const s of sailStripes(v)) {
         const mid = s.x + s.w / 2
         for (const [top, height, colour] of [
-            [s.y, s.fill, BG],
+            [s.y, s.fill, ON_ACCENT],
             [s.y + s.fill, s.h - s.fill, MUTED],
         ] as const) {
             ctx.save()
@@ -148,11 +148,12 @@ function drawSailLabels(ctx: CanvasRenderingContext2D, v: Voyage) {
             ctx.restore()
         }
         if (s.pct) {
-            const inside = s.fill > 14
-            ctx.fillStyle = inside ? BG : MUTED
+            const inside = s.fill > 10
+            ctx.fillStyle = inside ? ON_ACCENT : MUTED
             ctx.font = `600 4.6px ${FONT}`
             ctx.textAlign = 'center'
-            ctx.fillText(`${s.pct}%`, mid, s.y + (inside ? s.fill - 4 : s.fill + 7.5))
+            // At the top of the stripe, clear of the name below
+            ctx.fillText(`${s.pct}%`, mid, s.y + (inside ? 7 : s.fill + 7.5))
             ctx.textAlign = 'left'
         }
     }
