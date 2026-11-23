@@ -39,6 +39,10 @@ export const PrivacyPage = {
             Þú getur eytt aðgangi þínum og öllum tengdum gögnum á <a href="/profile/${authStore.user?.id ?? ''}">prófílsíðu þinni</a> (undir „Eyða aðgangi").
             Gögnin geta verið áfram í dulkóðuðum öryggisafritum í allt að 30 daga eftir eyðingu.
           </p>
+          <h2>Hafa samband</h2>
+          <p>
+            Spurningar um gögnin þín? Sendu póst á <a href="mailto:landnama@landnama.is">landnama@landnama.is</a>.
+          </p>
         </div>
       </div>
     `
