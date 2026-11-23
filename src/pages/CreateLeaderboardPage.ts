@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { errorMessage } from '../errorMessages'
 import { logError } from '../errorLog'
 import { authStore } from '../auth/authStore'
 import { navigateTo } from '../router'
@@ -39,7 +40,7 @@ export const CreateLeaderboardPage = {
                 .single()
 
             if (error) {
-                errEl.textContent = error.message
+                errEl.textContent = errorMessage('create leaderboard', error)
                 return
             }
 

@@ -1,4 +1,5 @@
 import { navigateTo } from '../router'
+import { errorMessage } from '../errorMessages'
 import { supabase } from '../supabase'
 
 export const InviteAcceptPage = {
@@ -16,7 +17,7 @@ export const InviteAcceptPage = {
 
         supabase.rpc('join_via_link', { p_token: token }).then(({ data, error }) => {
             if (error || data?.error) {
-                msgEl.textContent = error?.message ?? data?.error ?? 'Tókst ekki að taka þátt.'
+                msgEl.textContent = errorMessage('join leaderboard', error ?? data.error)
             } else {
                 msgEl.textContent = 'Bætt við! Endurvísar...'
                 setTimeout(() => navigateTo(`/leaderboards/${data.leaderboard_id}`), 1500)

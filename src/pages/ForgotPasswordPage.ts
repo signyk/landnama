@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { errorMessage } from '../errorMessages'
 
 export const ForgotPasswordPage = {
     render(_params: Record<string, string>): HTMLElement {
@@ -29,7 +30,7 @@ export const ForgotPasswordPage = {
             })
 
             if (error) {
-                errEl.textContent = error.message
+                errEl.textContent = errorMessage('forgot password', error)
             } else {
                 successEl.textContent = 'Hlekkur hefur verið sendur á netfangið þitt.'
             }

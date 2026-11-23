@@ -1,4 +1,5 @@
 import { navigateTo } from '../router'
+import { errorMessage } from '../errorMessages'
 import { supabase } from '../supabase'
 
 export const RegisterPage = {
@@ -27,19 +28,34 @@ export const RegisterPage = {
             const errEl = el.querySelector('#error') as HTMLElement
 
             errEl.textContent = ''
-            const { error } = await supabase.auth.signUp({
+            const redirect = sessionStorage.getItem('redirectAfterAuth')
+            const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
-                options: { data: { display_name: displayName } },
+                options: {
+                    data: { display_name: displayName },
+                    // Confirmation link may open in a new tab where sessionStorage is empty
+                    emailRedirectTo: `${window.location.origin}${redirect ?? '/home'}`,
+                },
             })
 
             if (error) {
-                errEl.textContent = error.message
-            } else {
-                const redirect = sessionStorage.getItem('redirectAfterAuth')
-                sessionStorage.removeItem('redirectAfterAuth')
-                navigateTo(redirect ?? '/home')
+                errEl.textContent = errorMessage('register', error)
+                return
             }
+            sessionStorage.removeItem('redirectAfterAuth')
+            if (data.session) {
+                navigateTo(redirect ?? '/home')
+                return
+            }
+            const page = el.querySelector('.auth-page') as HTMLElement
+            page.innerHTML = `
+        <h1>Staðfestu netfangið þitt</h1>
+        <p>Við sendum staðfestingarhlekk á <strong></strong>. Smelltu á hann til að virkja aðganginn.</p>
+        <p class="muted">Ef pósturinn berst ekki innan nokkurra mínútna skaltu athuga ruslpóstinn.</p>
+        <p><a href="/">Aftur á innskráningu</a></p>
+      `
+            page.querySelector('strong')!.textContent = email
         })
 
         return el

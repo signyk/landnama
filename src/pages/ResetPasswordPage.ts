@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { errorMessage } from '../errorMessages'
 import { navigateTo } from '../router'
 
 export const ResetPasswordPage = {
@@ -29,7 +30,7 @@ export const ResetPasswordPage = {
 
             const { error } = await supabase.auth.updateUser({ password })
             if (error) {
-                errEl.textContent = error.message
+                errEl.textContent = errorMessage('reset password', error)
             } else {
                 navigateTo('/home')
             }
