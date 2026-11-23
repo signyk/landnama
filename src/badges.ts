@@ -163,6 +163,100 @@ function computeCategory(
     return { id, label, icon, earned, progress, progressDetail, description }
 }
 
+// `labelDative` is the dative/locative form used in "Heimsótt X svæði í <labelDative>"
+export const REGION_DEFS: Array<{
+    region: string
+    id: string
+    label: string
+    labelDative: string
+    icon: string
+}> = [
+    {
+        region: 'Europe & Mediterranean',
+        id: 'region-europe',
+        label: 'Evrópa & Miðjarðarhaf',
+        labelDative: 'Evrópu & Miðjarðarhafi',
+        icon: ICON_EUROPE,
+    },
+    {
+        region: 'Africa',
+        id: 'region-africa',
+        label: 'Afríka',
+        labelDative: 'Afríku',
+        icon: ICON_AFRICA,
+    },
+    {
+        region: 'Asia',
+        id: 'region-asia',
+        label: 'Asía',
+        labelDative: 'Asíu',
+        icon: ICON_ASIA,
+    },
+    {
+        region: 'Pacific Ocean',
+        id: 'region-pacific',
+        label: 'Kyrrahaf',
+        labelDative: 'Kyrrahafi',
+        icon: ICON_PACIFIC,
+    },
+    {
+        region: 'Caribbean',
+        id: 'region-caribbean',
+        label: 'Karabíahaf',
+        labelDative: 'Karabíahafi',
+        icon: ICON_CARIBBEAN,
+    },
+    {
+        region: 'Middle East',
+        id: 'region-middleeast',
+        label: 'Miðausturlönd',
+        labelDative: 'Miðausturlöndum',
+        icon: ICON_MIDDLEEAST,
+    },
+    {
+        region: 'Indian Ocean',
+        id: 'region-indian',
+        label: 'Indlandshaf',
+        labelDative: 'Indlandshafi',
+        icon: ICON_INDIAN,
+    },
+    {
+        region: 'Atlantic Ocean',
+        id: 'region-atlantic',
+        label: 'Atlantshaf',
+        labelDative: 'Atlantshafi',
+        icon: ICON_ATLANTIC,
+    },
+    {
+        region: 'South America',
+        id: 'region-southamerica',
+        label: 'Suður-Ameríka',
+        labelDative: 'Suður-Ameríku',
+        icon: ICON_SOUTHAMERICA,
+    },
+    {
+        region: 'Antarctica',
+        id: 'region-antarctica',
+        label: 'Suðurskautssvæðið',
+        labelDative: 'Suðurskautssvæðinu',
+        icon: ICON_ANTARCTICA,
+    },
+    {
+        region: 'Central America',
+        id: 'region-centralamerica',
+        label: 'Mið-Ameríka',
+        labelDative: 'Mið-Ameríku',
+        icon: ICON_CENTRALAMERICA,
+    },
+    {
+        region: 'North America',
+        id: 'region-northamerica',
+        label: 'Norður-Ameríka',
+        labelDative: 'Norður-Ameríku',
+        icon: ICON_NORTHAMERICA,
+    },
+]
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function computeBadgeCategories(
@@ -235,101 +329,7 @@ export function computeBadgeCategories(
     )
 
     // 3–14. One per region
-    // `labelDative` is the dative/locative form used in "Heimsótt X svæði í <labelDative>"
-    const regionDefs: Array<{
-        region: string
-        id: string
-        label: string
-        labelDative: string
-        icon: string
-    }> = [
-        {
-            region: 'Europe & Mediterranean',
-            id: 'region-europe',
-            label: 'Evrópa & Miðjarðarhaf',
-            labelDative: 'Evrópu & Miðjarðarhafi',
-            icon: ICON_EUROPE,
-        },
-        {
-            region: 'Africa',
-            id: 'region-africa',
-            label: 'Afríka',
-            labelDative: 'Afríku',
-            icon: ICON_AFRICA,
-        },
-        {
-            region: 'Asia',
-            id: 'region-asia',
-            label: 'Asía',
-            labelDative: 'Asíu',
-            icon: ICON_ASIA,
-        },
-        {
-            region: 'Pacific Ocean',
-            id: 'region-pacific',
-            label: 'Kyrrahaf',
-            labelDative: 'Kyrrahafi',
-            icon: ICON_PACIFIC,
-        },
-        {
-            region: 'Caribbean',
-            id: 'region-caribbean',
-            label: 'Karabíahaf',
-            labelDative: 'Karabíahafi',
-            icon: ICON_CARIBBEAN,
-        },
-        {
-            region: 'Middle East',
-            id: 'region-middleeast',
-            label: 'Miðausturlönd',
-            labelDative: 'Miðausturlöndum',
-            icon: ICON_MIDDLEEAST,
-        },
-        {
-            region: 'Indian Ocean',
-            id: 'region-indian',
-            label: 'Indlandshaf',
-            labelDative: 'Indlandshafi',
-            icon: ICON_INDIAN,
-        },
-        {
-            region: 'Atlantic Ocean',
-            id: 'region-atlantic',
-            label: 'Atlantshaf',
-            labelDative: 'Atlantshafi',
-            icon: ICON_ATLANTIC,
-        },
-        {
-            region: 'South America',
-            id: 'region-southamerica',
-            label: 'Suður-Ameríka',
-            labelDative: 'Suður-Ameríku',
-            icon: ICON_SOUTHAMERICA,
-        },
-        {
-            region: 'Antarctica',
-            id: 'region-antarctica',
-            label: 'Suðurskautssvæðið',
-            labelDative: 'Suðurskautssvæðinu',
-            icon: ICON_ANTARCTICA,
-        },
-        {
-            region: 'Central America',
-            id: 'region-centralamerica',
-            label: 'Mið-Ameríka',
-            labelDative: 'Mið-Ameríku',
-            icon: ICON_CENTRALAMERICA,
-        },
-        {
-            region: 'North America',
-            id: 'region-northamerica',
-            label: 'Norður-Ameríka',
-            labelDative: 'Norður-Ameríku',
-            icon: ICON_NORTHAMERICA,
-        },
-    ]
-
-    for (const def of regionDefs) {
+    for (const def of REGION_DEFS) {
         const total = regionTotal.get(def.region) ?? 0
         const got = regionVisitedActive.get(def.region) ?? 0
         const t25 = Math.max(1, Math.ceil(total * 0.25))
