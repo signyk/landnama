@@ -10,32 +10,6 @@
     column-gap: 1.5rem;
 }
 
-.edit-name-form {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.edit-name-form.hidden {
-    display: none;
-}
-
-.edit-name-form input {
-    padding: 0.5rem 0.75rem;
-    background: #1e2130;
-    border: 1px solid #2e3347;
-    border-radius: 6px;
-    color: #e8e8e8;
-    font-size: 1rem;
-    outline: none;
-    width: 240px;
-}
-
-.edit-name-form input:focus {
-    border-color: #7cb9e8;
-}
-
 .badges-section {
     display: flex;
     flex-direction: column;
@@ -229,4 +203,46 @@
     .profile-territory-list {
         column-count: 1;
     }
+}
+
+.account-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.account-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 360px;
+}
+
+.account-form input {
+    padding: 0.5rem 0.75rem;
+    background: #1e2130;
+    border: 1px solid #2e3347;
+    border-radius: 6px;
+    color: #e8e8e8;
+    font-size: 1rem;
+    outline: none;
+}
+
+.account-form input:focus {
+    border-color: #7cb9e8;
+}
+
+.account-form .btn {
+    align-self: flex-start;
+}
+
+.account-form .muted {
+    font-size: 0.875rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.account-form .error:empty,
+.account-form .success:empty {
+    display: none;
 }

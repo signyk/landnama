@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>Staðfestu netfangið þitt</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0f1117;" bgcolor="#0f1117">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Staðfestu netfangið þitt til að virkja aðganginn þinn.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0f1117" style="background-color:#0f1117;">
+  <tr>
+    <td align="center" style="padding:32px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1e2130" style="max-width:520px;background-color:#1e2130;border:1px solid #2e3347;border-radius:10px;">
+        <tr>
+          <td style="padding:28px 32px 0 32px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="vertical-align:middle;padding-right:10px;">
+                  <img src="https://landnama.is/email-logo.png" width="28" height="28" alt="" style="display:block;border:0;">
+                </td>
+                <td style="vertical-align:middle;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:20px;font-weight:700;color:#e8e8e8;">
+                  Landnáma
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 32px 8px 32px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <h1 style="margin:0 0 16px 0;font-size:22px;line-height:1.3;color:#e8e8e8;">Takk fyrir að skrá þig!</h1>
+            <p style="margin:0 0 24px 0;font-size:16px;line-height:1.6;color:#c9cdd7;">Smelltu á hnappinn hér að neðan til að staðfesta netfangið <strong style="color:#e8e8e8;">{{ .Email }}</strong> og virkja aðganginn þinn.</p>
+          </td>
+        </tr>
+        <tr>
+          <td align="left" style="padding:0 32px 24px 32px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td bgcolor="#7cb9e8" style="border-radius:6px;background-color:#7cb9e8;">
+                  <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:13px 26px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#0f1117;text-decoration:none;border-radius:6px;">Staðfesta netfang</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 32px 24px 32px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#9ca3af;">
+            Virkar hnappurinn ekki? Afritaðu þessa slóð í vafrann:<br>
+            <a href="{{ .ConfirmationURL }}" style="color:#7cb9e8;text-decoration:none;word-break:break-all;">{{ .ConfirmationURL }}</a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 32px 28px 32px;border-top:1px solid #2e3347;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#6b7280;">
+            Ef þú stofnaðir ekki aðgang geturðu hunsað þennan tölvupóst.<br><br>
+            Landnáma · <a href="https://landnama.is" style="color:#6b7280;text-decoration:underline;">landnama.is</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
