@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { errorMessage } from '../errorMessages'
 import { authStore } from '../auth/authStore'
 import { esc } from '../utils'
 import { navbar, initNavHamburger } from '../components/nav'
@@ -27,7 +28,7 @@ export const LeaderboardListPage = {
             .eq('user_id', user.id)
             .then(({ data, error }) => {
                 if (error) {
-                    listEl.textContent = error.message
+                    listEl.textContent = errorMessage('load leaderboards', error)
                     return
                 }
                 if (!data || data.length === 0) {

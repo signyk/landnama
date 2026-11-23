@@ -1,4 +1,5 @@
 import { navigateTo } from '../router'
+import { errorMessage } from '../errorMessages'
 import { supabase } from '../supabase'
 
 export const LoginPage = {
@@ -28,7 +29,7 @@ export const LoginPage = {
 
             const { error } = await supabase.auth.signInWithPassword({ email, password })
             if (error) {
-                errEl.textContent = error.message
+                errEl.textContent = errorMessage('login', error)
             } else {
                 const redirect = sessionStorage.getItem('redirectAfterAuth')
                 sessionStorage.removeItem('redirectAfterAuth')

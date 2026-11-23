@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { errorMessage } from '../errorMessages'
 import { authStore } from '../auth/authStore'
 import { territories, allTerritories } from '../data/territories'
 import { navbar, initNavHamburger } from '../components/nav'
@@ -224,7 +225,7 @@ export const ProfilePage = {
                 const deleteErrorEl = el.querySelector('#delete-error') as HTMLElement
                 const { error } = await supabase.rpc('delete_my_account')
                 if (error) {
-                    deleteErrorEl.textContent = error.message
+                    deleteErrorEl.textContent = errorMessage('delete account', error)
                     return
                 }
                 await supabase.auth.signOut({ scope: 'local' })
@@ -274,7 +275,7 @@ export const ProfilePage = {
                 const taken =
                     error?.code === 'email_exists' || error?.code === 'user_already_exists'
                 if (error && !taken) {
-                    emailError.textContent = error.message
+                    emailError.textContent = errorMessage('change email', error)
                     return
                 }
                 input.value = ''
@@ -306,13 +307,16 @@ export const ProfilePage = {
                     password: current,
                 })
                 if (verifyError) {
-                    passwordError.textContent = 'Núverandi lykilorð er rangt.'
+                    passwordError.textContent =
+                        verifyError.code === 'invalid_credentials'
+                            ? 'Núverandi lykilorð er rangt.'
+                            : errorMessage('verify password', verifyError)
                     return
                 }
 
                 const { error } = await supabase.auth.updateUser({ password })
                 if (error) {
-                    passwordError.textContent = error.message
+                    passwordError.textContent = errorMessage('change password', error)
                     return
                 }
                 passwordForm.reset()
@@ -338,7 +342,7 @@ export const ProfilePage = {
                     .update({ display_name: newName })
                     .eq('id', currentUser.id)
                 if (error) {
-                    nameError.textContent = error.message
+                    nameError.textContent = errorMessage('change name', error)
                     return
                 }
                 nameEl.textContent = newName

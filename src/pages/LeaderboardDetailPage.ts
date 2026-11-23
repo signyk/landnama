@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { errorMessage } from '../errorMessages'
 import { logError } from '../errorLog'
 import { authStore } from '../auth/authStore'
 import { navigateTo } from '../router'
@@ -135,7 +136,7 @@ export const LeaderboardDetailPage = {
                 .order('rank')
 
             if (error) {
-                rankingsEl.textContent = error.message
+                rankingsEl.textContent = errorMessage('load rankings', error)
                 return
             }
 
