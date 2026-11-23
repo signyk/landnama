@@ -1,14 +1,15 @@
 import { supabase } from '../supabase'
 import { errorMessage } from '../errorMessages'
 import { downloadVisitsCsv } from '../exportVisits'
-import { prepareMapImage, shareMapImage } from '../shareImage'
+import { prepareShareImage, shareImage } from '../shareImage'
+import type { ShareKind } from '../shareImage'
 import { logError } from '../errorLog'
 import { authStore } from '../auth/authStore'
 import { territories, allTerritories } from '../data/territories'
 import { navbar, initNavHamburger } from '../components/nav'
 import { MapView } from '../components/MapView'
-import { computeBadgeCategories } from '../badges'
-import type { BadgeLevel } from '../badges'
+import { createSail } from '../components/ship'
+import { computeBadgeCategories, regionLabel, TIER_LABELS } from '../badges'
 
 export const ProfilePage = {
     render(params: Record<string, string>): HTMLElement {
@@ -19,65 +20,93 @@ export const ProfilePage = {
 
         el.innerHTML = `
       ${navbar(isOwnProfile ? 'profile' : null, currentUser.id)}
-      <div class="page-content">
+      <div class="page-content page-wide">
         <div id="profile-header" class="page-header">
           ${!isOwnProfile ? '<button id="back-btn" class="back-link">← Til baka</button>' : ''}
-          <h1 id="profile-name">Loading…</h1>
+          <h1 id="profile-name">Hleður…</h1>
           <span id="profile-count" class="count-badge"></span>
-          ${isOwnProfile ? '<button id="share-btn" class="btn-ghost" disabled>Deila korti</button>' : ''}
+          ${isOwnProfile ? '<button id="share-btn" class="btn-ghost" disabled>Deila mynd</button>' : ''}
           ${isOwnProfile ? '<button id="signout-btn" class="btn-ghost btn-signout">Skrá út</button>' : ''}
         </div>
-        <div id="map-container" class="map-container profile-map">
-          <div class="map-loading">Hleður korti…</div>
-        </div>
+        <section class="profile-views">
+          <div class="view-tabs" role="group" aria-label="Sýn">
+            <button type="button" data-view="map" aria-pressed="true">Kort</button>
+            <button type="button" data-view="ship" aria-pressed="false">Knörr</button>
+          </div>
+          <div id="map-container" class="map-container profile-view">
+            <div class="map-loading">Hleður korti…</div>
+          </div>
+          <div id="ship-view" class="profile-view profile-ship" hidden></div>
+        </section>
         <div id="badges-section" class="badges-section">
           <h2 class="section-title">Merki</h2>
-          <div id="badge-grid" class="badge-grid"></div>
+          <ul id="badge-list" class="badge-list"></ul>
         </div>
         <div id="territory-list" class="profile-territory-list"></div>
         ${
             isOwnProfile
                 ? `
-        <div class="account-section">
+        <section class="account-section">
           <h2 class="section-title">Aðgangur</h2>
-          <form id="name-form" class="account-form">
-            <h3>Nafn</h3>
-            <input type="text" id="display-name-input" placeholder="Nafn (til birtingar)" maxlength="60" autocomplete="name" required />
-            <button type="submit" class="btn">Breyta nafni</button>
-            <p id="name-error" class="error"></p>
-            <p id="name-success" class="success"></p>
+          <form id="name-form" class="settings-row">
+            <div class="settings-label">
+              <h3>Nafn</h3>
+              <p class="muted">Birtist á stigatöflum.</p>
+            </div>
+            <div class="settings-fields">
+              <input type="text" id="display-name-input" aria-label="Nafn" placeholder="Nafn (til birtingar)" maxlength="60" autocomplete="name" required />
+              <button type="submit" class="btn">Breyta nafni</button>
+              <p id="name-error" class="error"></p>
+              <p id="name-success" class="success"></p>
+            </div>
           </form>
-          <form id="email-form" class="account-form">
-            <h3>Netfang</h3>
-            <p class="muted">Núverandi: <span id="current-email"></span></p>
-            <p id="pending-email" class="muted hidden"></p>
-            <input type="email" id="new-email" placeholder="Nýtt netfang" autocomplete="email" required />
-            <button type="submit" class="btn">Breyta netfangi</button>
-            <p id="email-error" class="error"></p>
-            <p id="email-success" class="success"></p>
+          <form id="email-form" class="settings-row">
+            <div class="settings-label">
+              <h3>Netfang</h3>
+              <p class="muted">Núverandi: <span id="current-email"></span></p>
+              <p id="pending-email" class="muted hidden"></p>
+            </div>
+            <div class="settings-fields">
+              <input type="email" id="new-email" aria-label="Nýtt netfang" placeholder="Nýtt netfang" autocomplete="email" required />
+              <button type="submit" class="btn">Breyta netfangi</button>
+              <p id="email-error" class="error"></p>
+              <p id="email-success" class="success"></p>
+            </div>
           </form>
-          <form id="password-form" class="account-form">
-            <h3>Lykilorð</h3>
-            <input type="password" id="current-password" placeholder="Núverandi lykilorð" autocomplete="current-password" required />
-            <input type="password" id="new-password" placeholder="Nýtt lykilorð (lágmark 6 stafir)" autocomplete="new-password" required minlength="6" />
-            <input type="password" id="confirm-password" placeholder="Staðfesta nýtt lykilorð" autocomplete="new-password" required minlength="6" />
-            <button type="submit" class="btn">Breyta lykilorði</button>
-            <p id="password-error" class="error"></p>
-            <p id="password-success" class="success"></p>
+          <form id="password-form" class="settings-row">
+            <div class="settings-label">
+              <h3>Lykilorð</h3>
+            </div>
+            <div class="settings-fields">
+              <input type="password" id="current-password" aria-label="Núverandi lykilorð" placeholder="Núverandi lykilorð" autocomplete="current-password" required />
+              <input type="password" id="new-password" aria-label="Nýtt lykilorð" placeholder="Nýtt lykilorð (lágmark 6 stafir)" autocomplete="new-password" required minlength="6" />
+              <input type="password" id="confirm-password" aria-label="Staðfesta nýtt lykilorð" placeholder="Staðfesta nýtt lykilorð" autocomplete="new-password" required minlength="6" />
+              <button type="submit" class="btn">Breyta lykilorði</button>
+              <p id="password-error" class="error"></p>
+              <p id="password-success" class="success"></p>
+            </div>
           </form>
-          <div class="account-form">
-            <h3>Gögnin þín</h3>
-            <p class="muted">Sæktu lista yfir löndin og svæðin sem þú hefur heimsótt sem CSV-skrá.</p>
-            <button id="export-btn" class="btn">Sækja CSV</button>
-            <p id="export-error" class="error"></p>
+          <div class="settings-row">
+            <div class="settings-label">
+              <h3>Gögnin þín</h3>
+              <p class="muted">Sæktu lista yfir löndin og svæðin sem þú hefur heimsótt sem CSV-skrá.</p>
+            </div>
+            <div class="settings-fields">
+              <button id="export-btn" class="btn">Sækja CSV</button>
+              <p id="export-error" class="error"></p>
+            </div>
           </div>
-        </div>
-        <div class="danger-section" style="margin-top:2rem">
-          <h3 style="margin-bottom:0.5rem">Eyða aðgangi</h3>
-          <p class="muted" style="margin-bottom:0.75rem">Þetta eyðir öllum ferðagögnum þínum og er óafturkræft. Stigatöflur sem þú átt færast til annars meðlims.</p>
-          <button id="delete-account-btn" class="btn-danger">Eyða aðgangi</button>
-          <span id="delete-error" class="error"></span>
-        </div>
+          <div class="settings-row">
+            <div class="settings-label">
+              <h3>Eyða aðgangi</h3>
+              <p class="muted">Þetta eyðir öllum ferðagögnum þínum og er óafturkræft. Stigatöflur sem þú átt færast til annars meðlims.</p>
+            </div>
+            <div class="settings-fields">
+              <button id="delete-account-btn" class="btn-danger">Eyða aðgangi</button>
+              <span id="delete-error" class="error"></span>
+            </div>
+          </div>
+        </section>
         `
                 : ''
         }
@@ -101,82 +130,28 @@ export const ProfilePage = {
             mapView?.highlight()
         }
 
-        const TIER_LABELS: Record<BadgeLevel, string> = {
-            bronze: 'Brons',
-            silver: 'Silfur',
-            gold: 'Gull',
-            platinum: 'Platína',
-            diamond: 'Demantur',
-        }
-
-        let activePopover: HTMLElement | null = null
-
-        function closePopover() {
-            activePopover?.remove()
-            activePopover = null
-            document.removeEventListener('click', closePopover)
-        }
-
         function renderBadges() {
-            const grid = el.querySelector('#badge-grid') as HTMLElement
-            grid.innerHTML = ''
-            const categories = computeBadgeCategories(visited, allTerritories)
-
-            for (const cat of categories) {
-                const levelClass = cat.earned ? `badge-level-${cat.earned}` : 'badge-level-unearned'
-                const btn = document.createElement('button')
-                btn.className = `badge-icon-btn ${levelClass}`
-                btn.innerHTML = cat.icon
-                btn.setAttribute('aria-label', cat.label)
-
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation()
-                    if (activePopover?.dataset.badgeId === cat.id) {
-                        closePopover()
-                        return
-                    }
-                    closePopover()
-
-                    const popover = document.createElement('div')
-                    popover.className = `badge-popover ${levelClass}`
-                    popover.dataset.badgeId = cat.id
-
-                    const tierHtml = cat.earned
-                        ? `<span class="badge-popover-tier badge-tier-${cat.earned}">${TIER_LABELS[cat.earned]}</span>`
-                        : `<span class="badge-popover-tier badge-tier-unearned">Ekki unnið</span>`
-
-                    const pct = Math.round(cat.progress * 100)
-                    popover.innerHTML = `
-                        <div class="badge-popover-header">
-                            <span class="badge-popover-label">${cat.label}</span>
-                            ${tierHtml}
-                        </div>
-                        <p class="badge-popover-desc">${cat.description}</p>
-                        <div class="badge-popover-progress-wrap">
-                            <div class="badge-popover-progress-track">
-                                <div class="badge-popover-progress-fill" style="width:${pct}%"></div>
-                            </div>
-                            <span class="badge-popover-progress-detail">${cat.progressDetail}</span>
-                        </div>
-                    `
-
-                    document.body.appendChild(popover)
-                    activePopover = popover
-
-                    // Position above the button, clamped to viewport
-                    const rect = btn.getBoundingClientRect()
-                    const popoverWidth = 220
-                    const gap = 8
-                    let left = rect.left + rect.width / 2 - popoverWidth / 2
-                    left = Math.max(gap, Math.min(left, window.innerWidth - popoverWidth - gap))
-                    popover.style.left = `${left}px`
-                    popover.style.top = `${rect.top - popover.offsetHeight - gap}px`
-
-                    document.addEventListener('click', closePopover)
-                })
-
-                grid.appendChild(btn)
-            }
+            el.querySelector('#badge-list')!.innerHTML = computeBadgeCategories(
+                visited,
+                allTerritories,
+            )
+                .map(
+                    (b) => `
+              <li>
+                <details class="badge-row ${b.earned ?? 'unearned'}">
+                  <summary>
+                    ${b.icon}
+                    <span class="badge-name">${b.label}</span>
+                    <span class="badge-count">${b.current} / ${b.target}</span>
+                  </summary>
+                  <p class="badge-more">
+                    <b>${b.earned ? TIER_LABELS[b.earned] : 'Ekki unnið'}.</b>
+                    ${b.current === b.target ? b.description : `Næsta stig: ${b.description}`}
+                  </p>
+                </details>
+              </li>`,
+                )
+                .join('')
         }
 
         function renderList() {
@@ -197,7 +172,7 @@ export const ProfilePage = {
             byRegion.forEach((items, region) => {
                 const group = document.createElement('div')
                 group.className = 'list-group'
-                group.innerHTML = `<div class="list-region">${region} (${items.length})</div>`
+                group.innerHTML = `<div class="list-region">${regionLabel(region)} (${items.length})</div>`
                 items.forEach((t) => {
                     const row = document.createElement('div')
                     row.className = 'list-row visited'
@@ -212,6 +187,24 @@ export const ProfilePage = {
         mapView = new MapView({ container: mapContainer, visited, tooltip, visitedOnly: true })
         mapView.load()
 
+        const shipView = el.querySelector('#ship-view') as HTMLElement
+        const sail = createSail()
+        shipView.append(sail.el)
+        let view: ShareKind = 'map'
+        // Errors surface when the share button is tapped
+        const prepareShare = () => isOwnProfile && prepareShareImage(visited, view).catch(() => {})
+        el.querySelectorAll<HTMLButtonElement>('.view-tabs button').forEach((tab) =>
+            tab.addEventListener('click', () => {
+                view = tab.dataset.view as ShareKind
+                el.querySelectorAll('.view-tabs button').forEach((t) =>
+                    t.setAttribute('aria-pressed', String(t === tab)),
+                )
+                mapContainer.hidden = view !== 'map'
+                shipView.hidden = view !== 'ship'
+                prepareShare()
+            }),
+        )
+
         initNavHamburger(el)
 
         if (!isOwnProfile) {
@@ -223,9 +216,9 @@ export const ProfilePage = {
             shareBtn.addEventListener('click', async () => {
                 shareBtn.disabled = true
                 try {
-                    await shareMapImage(visited)
+                    await shareImage(visited, view)
                 } catch (err) {
-                    logError('share map image', err)
+                    logError('share image', err)
                     alert('Tókst ekki að búa til mynd. Reyndu aftur.')
                 } finally {
                     shareBtn.disabled = false
@@ -391,16 +384,16 @@ export const ProfilePage = {
             supabase.from('profiles').select('display_name').eq('id', uid).single(),
             supabase.from('visits').select('country_code').eq('user_id', uid),
         ]).then(([{ data: profile }, { data: visits }]) => {
-            nameEl.textContent = profile?.display_name ?? 'Unknown user'
+            nameEl.textContent = profile?.display_name ?? 'Óþekktur notandi'
             if (nameInput) nameInput.value = profile?.display_name ?? ''
             if (visits) visits.forEach((r) => visited.add(r.country_code))
             countEl.textContent = `${visited.size} / ${territories.length}`
             if (isOwnProfile) {
                 el.querySelector('#share-btn')!.removeAttribute('disabled')
-                // Errors surface when the button is tapped
-                prepareMapImage(visited).catch(() => {})
             }
+            prepareShare()
             highlightMap()
+            sail.update(visited)
             renderBadges()
             renderList()
         })

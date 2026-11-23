@@ -1,11 +1,13 @@
 import { supabase } from '../supabase'
 import { errorMessage } from '../errorMessages'
+import { LOGO } from '../components/logo'
 
 export const ForgotPasswordPage = {
     render(_params: Record<string, string>): HTMLElement {
         const el = document.createElement('div')
         el.innerHTML = `
       <div class="auth-page">
+        ${LOGO}
         <h1>Landnáma</h1>
         <p>Sláðu inn netfangið þitt og við sendum þér hlekk til að endurstilla lykilorðið.</p>
         <form id="forgot-form">

@@ -4,12 +4,18 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+    min-height: 100dvh;
     gap: 1rem;
     padding: 2rem;
 }
 
+.auth-page .logo {
+    width: 4rem;
+}
+
 .auth-page h1 {
     font-size: 2rem;
+    font-weight: 800;
     margin-bottom: 0.5rem;
 }
 
@@ -21,31 +27,58 @@
     max-width: 360px;
 }
 
-.auth-page input {
-    padding: 0.625rem 0.875rem;
-    background: #1e2130;
-    border: 1px solid #2e3347;
-    border-radius: 6px;
-    color: #e8e8e8;
-    font-size: 1rem;
-    outline: none;
+.auth-page form button[type='submit'] {
+    align-self: stretch;
 }
 
-.auth-page input:focus {
-    border-color: #7cb9e8;
+.auth-intro,
+.auth-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
 }
 
-.auth-page button[type='submit'] {
-    padding: 0.625rem;
-    background: #7cb9e8;
-    color: #0f1117;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
+.auth-intro {
+    gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 
-.auth-page button[type='submit']:hover {
-    background: #9dcbf0;
+.auth-intro .ship-svg {
+    width: 12rem;
+    margin-bottom: 1.5rem;
+}
+
+.auth-intro p {
+    color: var(--muted);
+}
+
+@media (min-width: 860px) {
+    .auth-page:has(.auth-intro) {
+        flex-direction: row;
+        gap: 7rem;
+    }
+
+    .auth-intro {
+        align-items: flex-start;
+        max-width: 24rem;
+        margin: 0;
+        text-align: left;
+    }
+
+    .auth-intro .ship-svg {
+        width: 100%;
+        margin-bottom: 2.5rem;
+    }
+
+    .auth-intro h1 {
+        font-size: 2.75rem;
+    }
+
+    .auth-intro p {
+        font-size: 1.15rem;
+    }
 }

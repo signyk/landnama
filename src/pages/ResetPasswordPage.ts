@@ -1,12 +1,14 @@
 import { supabase } from '../supabase'
 import { errorMessage } from '../errorMessages'
 import { navigateTo } from '../router'
+import { LOGO } from '../components/logo'
 
 export const ResetPasswordPage = {
     render(_params: Record<string, string>): HTMLElement {
         const el = document.createElement('div')
         el.innerHTML = `
       <div class="auth-page">
+        ${LOGO}
         <h1>Nýtt lykilorð</h1>
         <form id="reset-form">
           <input type="password" id="password" placeholder="Nýtt lykilorð (lágmark 6 stafir)" required minlength="6" />

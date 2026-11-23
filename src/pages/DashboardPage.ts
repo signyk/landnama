@@ -10,6 +10,8 @@ import {
 import { navbar, initNavHamburger } from '../components/nav'
 import { MapView } from '../components/MapView'
 import { createDropdown } from '../components/Dropdown'
+import { createSail } from '../components/ship'
+import { REGION_ORDER, regionLabel } from '../badges'
 
 export const DashboardPage = {
     render(_params: Record<string, string>): HTMLElement {
@@ -22,16 +24,10 @@ export const DashboardPage = {
 
         el.innerHTML = `
       ${navbar('home', user.id)}
-      <div class="mobile-tabs">
-        <button class="mobile-tab active" data-tab="map">Kort</button>
-        <button class="mobile-tab" data-tab="list">Listi</button>
-        <button class="mobile-tab" data-tab="stats">Tölfræði</button>
-        <span id="count-mobile" class="count-badge">0 / ${territories.length}</span>
-      </div>
+      <h1 class="sr-only">Heim</h1>
       <div class="dashboard-body">
         <aside class="sidebar">
           <div class="sidebar-header">
-            <span id="count" class="count-badge">0 / ${territories.length}</span>
             <div class="search-wrap">
               <input id="search" type="search" placeholder="Leita að löndum/svæðum…" />
               <button id="search-clear" class="search-clear hidden" type="button" aria-label="Hreinsa leit">×</button>
@@ -48,26 +44,16 @@ export const DashboardPage = {
             <div id="picker" class="picker hidden"></div>
             <div id="tooltip" class="map-tooltip hidden"></div>
           </main>
-          <div id="stats" class="stats-panel"></div>
         </div>
       </div>
       <div id="toast" class="toast hidden" role="alert"></div>
+      <button type="button" id="to-top" class="to-top" aria-label="Aftur efst">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
     `
 
         initNavHamburger(el)
 
-        // Mobile tab switching
-        const dashBody = el.querySelector('.dashboard-body') as HTMLElement
-        el.querySelectorAll('.mobile-tab').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                el.querySelectorAll('.mobile-tab').forEach((b) => b.classList.remove('active'))
-                btn.classList.add('active')
-                dashBody.dataset.tab = (btn as HTMLElement).dataset.tab
-            })
-        })
-
-        const countEl = el.querySelector('#count') as HTMLElement
-        const countMobileEl = el.querySelector('#count-mobile') as HTMLElement
         const mapContainer = el.querySelector('#map-container') as HTMLElement
         const tooltip = el.querySelector('#tooltip') as HTMLElement
         const picker = el.querySelector('#picker') as HTMLElement
@@ -79,105 +65,21 @@ export const DashboardPage = {
         const regionDropdown = createDropdown({
             options: [
                 { label: 'Öll svæði', value: '' },
-                { label: 'Africa', value: 'Africa' },
-                { label: 'Antarctica', value: 'Antarctica' },
-                { label: 'Asia', value: 'Asia' },
-                { label: 'Atlantic Ocean', value: 'Atlantic Ocean' },
-                { label: 'Caribbean', value: 'Caribbean' },
-                { label: 'Central America', value: 'Central America' },
-                { label: 'Europe & Mediterranean', value: 'Europe & Mediterranean' },
-                { label: 'Indian Ocean', value: 'Indian Ocean' },
-                { label: 'Middle East', value: 'Middle East' },
-                { label: 'North America', value: 'North America' },
-                { label: 'Pacific Ocean', value: 'Pacific Ocean' },
-                { label: 'South America', value: 'South America' },
+                ...REGION_ORDER.map((r) => ({ label: regionLabel(r), value: r })),
             ],
-            onChange: () => rerender(),
+            onChange: (value) => {
+                sail.pin(value || null)
+                rerender()
+            },
         })
         el.querySelector('#region-dropdown-mount')!.replaceWith(regionDropdown.el)
 
-        function updateCount() {
-            const text = `${visited.size} / ${territories.length}`
-            countEl.textContent = text
-            countMobileEl.textContent = text
-        }
-
-        const REGION_TOTALS: Record<string, number> = {
-            Africa: 55,
-            Antarctica: 7,
-            Asia: 52,
-            'Atlantic Ocean': 14,
-            Caribbean: 31,
-            'Central America': 7,
-            'Europe & Mediterranean': 68,
-            'Indian Ocean': 15,
-            'Middle East': 21,
-            'North America': 6,
-            'Pacific Ocean': 40,
-            'South America': 14,
-        }
-
-        function donutSvg(
-            pct: number,
-            size: number,
-            strokeWidth: number,
-            color = '#3b82f6',
-        ): string {
-            const cx = size / 2
-            const cy = size / 2
-            const r = (size - strokeWidth) / 2
-            const circumference = 2 * Math.PI * r
-            const filled = (pct / 100) * circumference
-            return `
-        <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#2e3347" stroke-width="${strokeWidth}"/>
-          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${strokeWidth}"
-            stroke-dasharray="${filled.toFixed(2)} ${circumference.toFixed(2)}"
-            transform="rotate(-90 ${cx} ${cy})"
-            stroke-linecap="round"
-          />
-          <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central"
-            fill="${color}" font-size="${Math.round(size * 0.22)}px" font-weight="700" font-family="system-ui,sans-serif">
-            ${pct}%
-          </text>
-        </svg>
-      `
-        }
-
-        function renderStats() {
-            const statsEl = el.querySelector('#stats') as HTMLElement
-
-            const byRegion: Record<string, number> = {}
-            for (const id of visited) {
-                const t = territoryMap.get(id)
-                if (t) byRegion[t.region] = (byRegion[t.region] ?? 0) + 1
-            }
-
-            const pct = Math.min(100, Math.round((visited.size / territories.length) * 100))
-
-            statsEl.innerHTML = `
-        <div class="stats-row">
-          <div class="stats-donut-card stats-donut-total">
-            ${donutSvg(pct, 84, 11, '#e8e8e8')}
-            <div class="stats-donut-name">Samtals</div>
-            <div class="stats-donut-count">${visited.size}/${territories.length}</div>
-          </div>
-          ${Object.entries(REGION_TOTALS)
-              .map(([region, total]) => {
-                  const count = byRegion[region] ?? 0
-                  const rpct = Math.min(100, Math.round((count / total) * 100))
-                  return `
-              <div class="stats-donut-card">
-                ${donutSvg(rpct, 72, 9)}
-                <div class="stats-donut-name">${region}</div>
-                <div class="stats-donut-count">${count}/${total}</div>
-              </div>
-            `
-              })
-              .join('')}
-        </div>
-      `
-        }
+        const sail = createSail((region) => {
+            regionDropdown.setValue(region ?? '')
+            searchInput.value = ''
+            rerender()
+        })
+        el.querySelector('.sidebar')!.prepend(sail.el)
 
         let mapView: MapView | null = null
 
@@ -214,7 +116,7 @@ export const DashboardPage = {
             byRegion.forEach((items, region) => {
                 const group = document.createElement('div')
                 group.className = 'list-group'
-                group.innerHTML = `<div class="list-region">${region}</div>`
+                group.innerHTML = `<div class="list-region">${regionLabel(region)}</div>`
                 items.forEach((t) => group.appendChild(makeRow(t)))
                 listEl.appendChild(group)
             })
@@ -240,7 +142,7 @@ export const DashboardPage = {
                     byRegionRetired.forEach((items, region) => {
                         const group = document.createElement('div')
                         group.className = 'list-group'
-                        group.innerHTML = `<div class="list-region">${region}</div>`
+                        group.innerHTML = `<div class="list-region">${regionLabel(region)}</div>`
                         items.forEach((t) => group.appendChild(makeRow(t)))
                         listEl.appendChild(group)
                     })
@@ -255,8 +157,7 @@ export const DashboardPage = {
         function refreshVisitUi(id: string) {
             listEl.querySelector(`[data-id="${id}"]`)?.classList.toggle('visited', visited.has(id))
             highlightMap()
-            updateCount()
-            renderStats()
+            sail.update(visited)
         }
 
         async function toggleVisit(id: string, rowEl?: Element) {
@@ -321,7 +222,7 @@ export const DashboardPage = {
             .map(
                 (t) => `
           <div class="picker-option${visited.has(t.id) ? ' visited' : ''}" data-id="${t.id}">
-            <span class="picker-check">${visited.has(t.id) ? '✓' : ''}</span>
+            <span class="picker-check" aria-hidden="true"></span>
             ${t.name}
           </div>
         `,
@@ -340,10 +241,7 @@ export const DashboardPage = {
                     const id = (opt as HTMLElement).dataset.id!
                     const row = listEl.querySelector(`[data-id="${id}"]`) ?? undefined
                     await toggleVisit(id, row)
-                    // refresh picker
-                    const isNowVisited = visited.has(id)
-                    opt.classList.toggle('visited', isNowVisited)
-                    opt.querySelector('.picker-check')!.textContent = isNowVisited ? '✓' : ''
+                    opt.classList.toggle('visited', visited.has(id))
                 })
             })
         }
@@ -372,15 +270,32 @@ export const DashboardPage = {
             rerender()
         })
 
-        // Load SVG
-        mapView = new MapView({
-            container: mapContainer,
-            visited,
-            tooltip,
-            onPathClick: (svgId, x, y) => showPicker(svgId, x, y),
-            zoomable: true,
+        // The map is hidden on narrow screens, so don't download it there
+        const narrow = window.matchMedia('(max-width: 900px)')
+        const loadMap = () => {
+            if (mapView || narrow.matches) return
+            mapView = new MapView({
+                container: mapContainer,
+                visited,
+                tooltip,
+                onPathClick: (svgId, x, y) => showPicker(svgId, x, y),
+                zoomable: true,
+            })
+            mapView.load()
+        }
+        loadMap()
+        narrow.addEventListener('change', loadMap)
+
+        const toTop = el.querySelector('#to-top') as HTMLButtonElement
+        const onScroll = () => {
+            if (!el.isConnected) return window.removeEventListener('scroll', onScroll)
+            toTop.classList.toggle('visible', window.scrollY > 600)
+        }
+        window.addEventListener('scroll', onScroll, { passive: true })
+        toTop.addEventListener('click', () => {
+            const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' })
         })
-        mapView.load()
 
         async function loadVisits() {
             toast.classList.add('hidden')
@@ -406,9 +321,8 @@ export const DashboardPage = {
             })
             visitsLoaded = true
             highlightMap()
-            updateCount()
             renderList()
-            renderStats()
+            sail.update(visited)
         }
         void loadVisits()
 

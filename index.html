@@ -6,6 +6,16 @@
     <title>Landnáma | Haltu utan um löndin sem þú hefur heimsótt</title>
     <meta name="description" content="Merktu við löndin sem þú hefur heimsótt. Haltu utan um hversu mörg lönd og svæði þú hefur heimsótt af 330 svæðum TCC. Kepptu við vini í stigatöflum." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#e1e4dd" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1b1e1c" media="(prefers-color-scheme: dark)" />
+    <script>
+      var theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      try {
+        theme = localStorage.getItem('theme') || theme
+      } catch (e) {}
+      document.documentElement.dataset.theme = theme
+    </script>
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Landnáma" />

@@ -1,13 +1,16 @@
 import { navigateTo } from '../router'
 import { errorMessage } from '../errorMessages'
 import { supabase } from '../supabase'
+import { LOGO } from '../components/logo'
+import { authIntro } from '../components/authIntro'
 
 export const RegisterPage = {
     render(_params: Record<string, string>): HTMLElement {
         const el = document.createElement('div')
         el.innerHTML = `
       <div class="auth-page">
-        <h1>Búa til aðgang</h1>
+        ${authIntro('Búa til aðgang')}
+        <div class="auth-main">
         <form id="register-form">
           <input type="text" id="display-name" placeholder="Nafn (til birtingar)" required />
           <input type="email" id="email" placeholder="Netfang" required />
@@ -17,6 +20,7 @@ export const RegisterPage = {
         </form>
         <p>Ertu nú þegar með aðgang? <a href="/">Skrá inn</a></p>
         <p class="muted" style="font-size:0.8rem">Með því að nýskrá samþykkir þú <a href="/privacy">persónuverndarstefnu</a> okkar.</p>
+        </div>
       </div>
     `
 
@@ -50,6 +54,7 @@ export const RegisterPage = {
             }
             const page = el.querySelector('.auth-page') as HTMLElement
             page.innerHTML = `
+        ${LOGO}
         <h1>Staðfestu netfangið þitt</h1>
         <p>Við sendum staðfestingarhlekk á <strong></strong>. Smelltu á hann til að virkja aðganginn.</p>
         <p class="muted">Ef pósturinn berst ekki innan nokkurra mínútna skaltu athuga ruslpóstinn.</p>
