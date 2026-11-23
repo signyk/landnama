@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { errorMessage } from '../errorMessages'
+import { downloadVisitsCsv } from '../exportVisits'
 import { authStore } from '../auth/authStore'
 import { territories, allTerritories } from '../data/territories'
 import { navbar, initNavHamburger } from '../components/nav'
@@ -61,6 +62,12 @@ export const ProfilePage = {
             <p id="password-error" class="error"></p>
             <p id="password-success" class="success"></p>
           </form>
+          <div class="account-form">
+            <h3>Gögnin þín</h3>
+            <p class="muted">Sæktu lista yfir löndin og svæðin sem þú hefur heimsótt sem CSV-skrá.</p>
+            <button id="export-btn" class="btn">Sækja CSV</button>
+            <p id="export-error" class="error"></p>
+          </div>
         </div>
         <div class="danger-section" style="margin-top:2rem">
           <h3 style="margin-bottom:0.5rem">Eyða aðgangi</h3>
@@ -321,6 +328,16 @@ export const ProfilePage = {
                 }
                 passwordForm.reset()
                 passwordSuccess.textContent = 'Lykilorðinu hefur verið breytt.'
+            })
+
+            const exportBtn = el.querySelector('#export-btn') as HTMLButtonElement
+            const exportError = el.querySelector('#export-error') as HTMLElement
+            exportBtn.addEventListener('click', async () => {
+                exportError.textContent = ''
+                exportBtn.disabled = true
+                const error = await downloadVisitsCsv(currentUser.id)
+                exportBtn.disabled = false
+                if (error) exportError.textContent = errorMessage('export visits', error)
             })
         }
 
