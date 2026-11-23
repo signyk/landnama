@@ -20,21 +20,8 @@ export const ProfilePage = {
           ${!isOwnProfile ? '<button id="back-btn" class="back-link">← Til baka</button>' : ''}
           <h1 id="profile-name">Loading…</h1>
           <span id="profile-count" class="count-badge"></span>
-          ${isOwnProfile ? '<button id="edit-name-btn" class="btn-ghost">Breyta nafni</button>' : ''}
           ${isOwnProfile ? '<button id="signout-btn" class="btn-ghost btn-signout">Skrá út</button>' : ''}
         </div>
-        ${
-            isOwnProfile
-                ? `
-          <div id="edit-name-form" class="edit-name-form hidden">
-            <input type="text" id="display-name-input" placeholder="Nafn (til birtingar)" maxlength="60" />
-            <button id="save-name-btn" class="btn">Vista</button>
-            <button id="cancel-name-btn" class="btn-ghost">Hætta við</button>
-            <span id="edit-error" class="error"></span>
-          </div>
-        `
-                : ''
-        }
         <div id="map-container" class="map-container profile-map">
           <div class="map-loading">Hleður korti…</div>
         </div>
@@ -46,6 +33,34 @@ export const ProfilePage = {
         ${
             isOwnProfile
                 ? `
+        <div class="account-section">
+          <h2 class="section-title">Aðgangur</h2>
+          <form id="name-form" class="account-form">
+            <h3>Nafn</h3>
+            <input type="text" id="display-name-input" placeholder="Nafn (til birtingar)" maxlength="60" autocomplete="name" required />
+            <button type="submit" class="btn">Breyta nafni</button>
+            <p id="name-error" class="error"></p>
+            <p id="name-success" class="success"></p>
+          </form>
+          <form id="email-form" class="account-form">
+            <h3>Netfang</h3>
+            <p class="muted">Núverandi: <span id="current-email"></span></p>
+            <p id="pending-email" class="muted hidden"></p>
+            <input type="email" id="new-email" placeholder="Nýtt netfang" autocomplete="email" required />
+            <button type="submit" class="btn">Breyta netfangi</button>
+            <p id="email-error" class="error"></p>
+            <p id="email-success" class="success"></p>
+          </form>
+          <form id="password-form" class="account-form">
+            <h3>Lykilorð</h3>
+            <input type="password" id="current-password" placeholder="Núverandi lykilorð" autocomplete="current-password" required />
+            <input type="password" id="new-password" placeholder="Nýtt lykilorð (lágmark 6 stafir)" autocomplete="new-password" required minlength="6" />
+            <input type="password" id="confirm-password" placeholder="Staðfesta nýtt lykilorð" autocomplete="new-password" required minlength="6" />
+            <button type="submit" class="btn">Breyta lykilorði</button>
+            <p id="password-error" class="error"></p>
+            <p id="password-success" class="success"></p>
+          </form>
+        </div>
         <div class="danger-section" style="margin-top:2rem">
           <h3 style="margin-bottom:0.5rem">Eyða aðgangi</h3>
           <p class="muted" style="margin-bottom:0.75rem">Þetta eyðir öllum ferðagögnum þínum og er óafturkræft. Stigatöflur sem þú átt færast til annars meðlims.</p>
@@ -62,6 +77,7 @@ export const ProfilePage = {
         const countEl = el.querySelector('#profile-count') as HTMLElement
         const mapContainer = el.querySelector('#map-container') as HTMLElement
         const listEl = el.querySelector('#territory-list') as HTMLElement
+        const nameInput = el.querySelector<HTMLInputElement>('#display-name-input')
 
         const visited = new Set<string>()
         const tooltip = document.createElement('div')
@@ -217,40 +233,117 @@ export const ProfilePage = {
             })
         }
 
+        if (isOwnProfile) {
+            const currentEmailEl = el.querySelector('#current-email') as HTMLElement
+            const pendingEmailEl = el.querySelector('#pending-email') as HTMLElement
+            const emailForm = el.querySelector('#email-form') as HTMLFormElement
+            const emailError = el.querySelector('#email-error') as HTMLElement
+            const emailSuccess = el.querySelector('#email-success') as HTMLElement
+
+            function showPendingEmail(newEmail: string | undefined) {
+                pendingEmailEl.textContent = newEmail ? `Bíður staðfestingar: ${newEmail}` : ''
+                pendingEmailEl.classList.toggle('hidden', !newEmail)
+            }
+
+            let accountEmail = currentUser.email ?? ''
+            currentEmailEl.textContent = accountEmail
+            showPendingEmail(currentUser.new_email)
+            // The cached session user can be stale after an email change
+            supabase.auth.getUser().then(({ data }) => {
+                if (!data.user) return
+                accountEmail = data.user.email ?? ''
+                currentEmailEl.textContent = accountEmail
+                showPendingEmail(data.user.new_email)
+            })
+
+            emailForm.addEventListener('submit', async (e) => {
+                e.preventDefault()
+                emailError.textContent = ''
+                emailSuccess.textContent = ''
+                const input = el.querySelector('#new-email') as HTMLInputElement
+                const email = input.value.trim()
+                if (email.toLowerCase() === accountEmail.toLowerCase()) {
+                    emailError.textContent = 'Þetta er núverandi netfangið þitt.'
+                    return
+                }
+                const { error } = await supabase.auth.updateUser(
+                    { email },
+                    { emailRedirectTo: `${window.location.origin}/profile/${currentUser.id}` },
+                )
+                // Look identical to success so the form can't reveal who has an account
+                const taken =
+                    error?.code === 'email_exists' || error?.code === 'user_already_exists'
+                if (error && !taken) {
+                    emailError.textContent = error.message
+                    return
+                }
+                input.value = ''
+                if (!taken) showPendingEmail(email)
+                emailSuccess.textContent =
+                    'Ef netfangið er ekki þegar í notkun hefur staðfestingarhlekkur verið sendur á það. Ef þú færð líka póst á núverandi netfang þarftu að staðfesta þar líka.'
+            })
+
+            const passwordForm = el.querySelector('#password-form') as HTMLFormElement
+            const passwordError = el.querySelector('#password-error') as HTMLElement
+            const passwordSuccess = el.querySelector('#password-success') as HTMLElement
+
+            passwordForm.addEventListener('submit', async (e) => {
+                e.preventDefault()
+                passwordError.textContent = ''
+                passwordSuccess.textContent = ''
+                const current = (el.querySelector('#current-password') as HTMLInputElement).value
+                const password = (el.querySelector('#new-password') as HTMLInputElement).value
+                const confirmPw = (el.querySelector('#confirm-password') as HTMLInputElement).value
+
+                if (password !== confirmPw) {
+                    passwordError.textContent = 'Lykilorðin stemma ekki.'
+                    return
+                }
+
+                // Guards against someone using an already-open session (e.g. an unlocked phone)
+                const { error: verifyError } = await supabase.auth.signInWithPassword({
+                    email: accountEmail,
+                    password: current,
+                })
+                if (verifyError) {
+                    passwordError.textContent = 'Núverandi lykilorð er rangt.'
+                    return
+                }
+
+                const { error } = await supabase.auth.updateUser({ password })
+                if (error) {
+                    passwordError.textContent = error.message
+                    return
+                }
+                passwordForm.reset()
+                passwordSuccess.textContent = 'Lykilorðinu hefur verið breytt.'
+            })
+        }
+
         // Edit display name (own profile only)
         if (isOwnProfile) {
-            const editBtn = el.querySelector('#edit-name-btn')!
-            const editForm = el.querySelector('#edit-name-form') as HTMLElement
-            const nameInput = el.querySelector('#display-name-input') as HTMLInputElement
-            const saveBtn = el.querySelector('#save-name-btn')!
-            const cancelBtn = el.querySelector('#cancel-name-btn')!
-            const editError = el.querySelector('#edit-error') as HTMLElement
+            const nameField = nameInput!
+            const nameForm = el.querySelector('#name-form') as HTMLFormElement
+            const nameError = el.querySelector('#name-error') as HTMLElement
+            const nameSuccess = el.querySelector('#name-success') as HTMLElement
 
-            editBtn.addEventListener('click', () => {
-                nameInput.value = nameEl.textContent ?? ''
-                editForm.classList.remove('hidden')
-                nameInput.focus()
-            })
-
-            cancelBtn.addEventListener('click', () => {
-                editForm.classList.add('hidden')
-                editError.textContent = ''
-            })
-
-            saveBtn.addEventListener('click', async () => {
-                const newName = nameInput.value.trim()
+            nameForm.addEventListener('submit', async (e) => {
+                e.preventDefault()
+                nameError.textContent = ''
+                nameSuccess.textContent = ''
+                const newName = nameField.value.trim()
                 if (!newName) return
                 const { error } = await supabase
                     .from('profiles')
                     .update({ display_name: newName })
                     .eq('id', currentUser.id)
                 if (error) {
-                    editError.textContent = error.message
-                } else {
-                    nameEl.textContent = newName
-                    editForm.classList.add('hidden')
-                    editError.textContent = ''
+                    nameError.textContent = error.message
+                    return
                 }
+                nameEl.textContent = newName
+                nameField.value = newName
+                nameSuccess.textContent = 'Nafninu hefur verið breytt.'
             })
         }
 
@@ -260,6 +353,7 @@ export const ProfilePage = {
             supabase.from('visits').select('country_code').eq('user_id', uid),
         ]).then(([{ data: profile }, { data: visits }]) => {
             nameEl.textContent = profile?.display_name ?? 'Unknown user'
+            if (nameInput) nameInput.value = profile?.display_name ?? ''
             if (visits) visits.forEach((r) => visited.add(r.country_code))
             countEl.textContent = `${visited.size} / ${territories.length}`
             highlightMap()
