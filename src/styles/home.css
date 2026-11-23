@@ -454,17 +454,44 @@
     stroke: var(--text);
     stroke-width: 2.5;
 }
-.ship-hull .shields circle {
-    fill: var(--cloth);
-    stroke: var(--text);
+.badge-shield {
+    pointer-events: all;
+    outline: none;
+    color: var(--hull);
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 0.15s;
+}
+.badge-shield:hover,
+.badge-shield:focus-visible {
+    transform: scale(1.15);
+}
+.badge-shield circle {
+    stroke: var(--hull);
     stroke-width: 1.5;
 }
-.ship-hull .shields .shield-red {
-    fill: var(--red);
+.badge-shield.bronze circle {
+    fill: var(--bronze);
 }
-.ship-hull .bosses circle {
-    fill: var(--text);
+.badge-shield.silver circle {
+    fill: var(--silver);
 }
+.badge-shield.gold circle {
+    fill: var(--gold);
+}
+.badge-shield.platinum circle {
+    fill: var(--platinum);
+}
+.badge-shield.diamond circle {
+    fill: var(--diamond);
+}
+.badge-shield.unearned {
+    color: var(--strake);
+}
+.badge-shield.unearned circle {
+    fill: var(--hull);
+}
+
 .ship-hull .sea {
     fill: none;
     stroke: var(--sea);

@@ -7,8 +7,7 @@ import { authStore } from '../auth/authStore'
 import { territories, allTerritories } from '../data/territories'
 import { navbar, initNavHamburger } from '../components/nav'
 import { MapView } from '../components/MapView'
-import { computeBadgeCategories } from '../badges'
-import type { BadgeLevel } from '../badges'
+import { computeBadgeCategories, TIER_LABELS } from '../badges'
 
 export const ProfilePage = {
     render(params: Record<string, string>): HTMLElement {
@@ -120,14 +119,6 @@ export const ProfilePage = {
 
         function highlightMap() {
             mapView?.highlight()
-        }
-
-        const TIER_LABELS: Record<BadgeLevel, string> = {
-            bronze: 'Brons',
-            silver: 'Silfur',
-            gold: 'Gull',
-            platinum: 'Platína',
-            diamond: 'Demantur',
         }
 
         let activePopover: HTMLElement | null = null

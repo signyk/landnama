@@ -15,6 +15,8 @@ export type BadgeCategory = {
     icon: string
     earned: BadgeLevel | null
     progress: number
+    current: number
+    target: number
     progressDetail: string
     description: string
 }
@@ -127,7 +129,15 @@ const ICON_NORTHAMERICA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentC
 
 // ─── Tier helpers ─────────────────────────────────────────────────────────────
 
-const LEVEL_ORDER: BadgeLevel[] = ['bronze', 'silver', 'gold', 'platinum', 'diamond']
+export const LEVEL_ORDER: BadgeLevel[] = ['bronze', 'silver', 'gold', 'platinum', 'diamond']
+
+export const TIER_LABELS: Record<BadgeLevel, string> = {
+    bronze: 'Brons',
+    silver: 'Silfur',
+    gold: 'Gull',
+    platinum: 'Platína',
+    diamond: 'Demantur',
+}
 
 function computeCategory(
     id: string,
@@ -144,23 +154,24 @@ function computeCategory(
     const earnedIdx = earned ? LEVEL_ORDER.indexOf(earned) : -1
     const nextTier = tiers.find((t) => LEVEL_ORDER.indexOf(t.level) > earnedIdx) ?? null
 
-    let progress: number
-    let progressDetail: string
-    let description: string
+    const target = (nextTier ?? tiers[tiers.length - 1]).threshold
+    const current = Math.min(value, target)
+    const earnedTierDef = earned ? tiers.find((t) => t.level === earned) : null
+    const description = nextTier
+        ? (earnedTierDef ?? nextTier).description
+        : tiers[tiers.length - 1].description
 
-    if (!nextTier) {
-        const maxTier = tiers[tiers.length - 1]
-        progress = 1
-        progressDetail = `${maxTier.threshold} / ${maxTier.threshold}`
-        description = maxTier.description
-    } else {
-        const earnedTierDef = earned ? tiers.find((t) => t.level === earned) : null
-        progress = Math.min(value / nextTier.threshold, 1)
-        progressDetail = `${Math.min(value, nextTier.threshold)} / ${nextTier.threshold}`
-        description = earnedTierDef ? earnedTierDef.description : nextTier.description
+    return {
+        id,
+        label,
+        icon,
+        earned,
+        progress: current / target,
+        current,
+        target,
+        progressDetail: `${current} / ${target}`,
+        description,
     }
-
-    return { id, label, icon, earned, progress, progressDetail, description }
 }
 
 // `labelDative` is the dative/locative form used in "Heimsótt X svæði í <labelDative>"
